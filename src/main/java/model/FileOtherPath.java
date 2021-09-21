@@ -5,10 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-import lombok.Data;
-
 @Entity
-@Data
 public class FileOtherPath {
 	
 	@Id
@@ -28,6 +25,38 @@ public class FileOtherPath {
 		super();
 		this.path = path;
 		this.file = file;
+		this.commitChange = commitChange;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public File getFile() {
+		return file;
+	}
+
+	public void setFile(File file) {
+		this.file = file;
+	}
+
+	public Commit getCommitChange() {
+		return commitChange;
+	}
+
+	public void setCommitChange(Commit commitChange) {
 		this.commitChange = commitChange;
 	}
 

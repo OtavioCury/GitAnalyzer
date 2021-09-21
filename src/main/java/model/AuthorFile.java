@@ -5,10 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-import lombok.Data;
-
 @Entity
-@Data
 public class AuthorFile {
 	
 	@Id
@@ -29,5 +26,45 @@ public class AuthorFile {
 	}
 	
 	public AuthorFile() {
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Author getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(Author author) {
+		this.author = author;
+	}
+
+	public File getFile() {
+		return file;
+	}
+
+	public void setFile(File file) {
+		this.file = file;
+	}
+
+	public int getNumLines() {
+		return numLines;
+	}
+
+	public void setNumLines(int numLines) {
+		this.numLines = numLines;
+	}
+
+	public boolean isFirstAuthor() {
+		return firstAuthor;
+	}
+
+	public void setFirstAuthor(boolean firstAuthor) {
+		this.firstAuthor = firstAuthor;
 	}
 }
