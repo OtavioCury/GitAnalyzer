@@ -23,7 +23,7 @@
 			<property name="javax.persistence.jdbc.user"
 				value="postgres" /> <!-- DB User -->
 			<property name="javax.persistence.jdbc.password"
-				value="root" /> <!-- DB Password -->
+				value="lost" /> <!-- DB Password -->
 
 			<property name="hibernate.dialect"
 				value="org.hibernate.dialect.PostgreSQLDialect" /> <!-- DB Dialect -->

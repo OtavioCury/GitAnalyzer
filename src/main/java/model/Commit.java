@@ -17,13 +17,14 @@ public class Commit {
 	private Author author;
 	private Date date;
 	private String externalId;
-	private int numberFiles;
+	private int numberFilesMod;
 	
-	public Commit(Author author, Date date, String externalId) {
+	public Commit(Author author, Date date, String externalId, int numberFilesMod) {
 		super();
 		this.author = author;
 		this.date = date;
 		this.externalId = externalId;
+		this.numberFilesMod = numberFilesMod;
 	}
 	
 	public Commit() {
@@ -61,12 +62,12 @@ public class Commit {
 		this.externalId = externalId;
 	}
 
-	public int getNumberFiles() {
-		return numberFiles;
+	public int getNumberFilesMod() {
+		return numberFilesMod;
 	}
 
-	public void setNumberFiles(int numberFiles) {
-		this.numberFiles = numberFiles;
+	public void setNumberFilesMod(int numberFilesMod) {
+		this.numberFilesMod = numberFilesMod;
 	}
 	
 }

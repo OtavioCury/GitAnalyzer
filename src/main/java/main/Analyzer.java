@@ -54,12 +54,15 @@ import utils.ConstantsProject;
 
 public class Analyzer {
 
-	static String fullPath = "/home/otavio/analiseihealth/ihealth/ihealth/.git";
+	static String fullPath = "/media/lost/e04b3034-2506-41c9-a1d4-e3d38fe04256/otavio/projetoIHealth/ihealth/ihealth/.git";
 	static String projectName = "IHealth";
-	static String filesFile = "/home/otavio/analiseihealth/ihealth/ihealth/filelist.log";
+	static String filesFile = "/media/lost/e04b3034-2506-41c9-a1d4-e3d38fe04256/otavio/projetoIHealth/ihealth/ihealth/filelist.log";
 	static SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+	
+	static List<String> invalidPaths = new ArrayList<String>();
 
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
+		invalidPaths.add("/dev/null");
 		ProjectDAO projectDao = new ProjectDAO();
 		//List<String> arquivosAnalisados = new ArrayList<String>();
 		Git git;
@@ -414,6 +417,7 @@ public class Analyzer {
 
 	private static void createDatabase(List<model.File> files, Git git, Repository repository) throws NoHeadException, 
 	GitAPIException, AmbiguousObjectException, IncorrectObjectTypeException, IOException{
+		HashMap<String, List<DiffEntry>> diffsCommits = new HashMap<String, List<DiffEntry>>();
 		AuthorDAO authorDao = new AuthorDAO();
 		CommitDAO commitDao = new CommitDAO();
 		CommitFileDAO commitFileDao = new CommitFileDAO();
@@ -443,7 +447,13 @@ public class Analyzer {
 					email = jgitCommit.getCommitterIdent().getEmailAddress();
 					authorName = jgitCommit.getCommitterIdent().getName();
 				}
-				List<DiffEntry> diffsForTheCommit = diffsForTheCommit(repository, jgitCommit); //obtém as diffs do commit
+				List<DiffEntry> diffsForTheCommit = null;
+				if(diffsCommits.containsKey(jgitCommit.getName())) {
+					diffsForTheCommit = diffsCommits.get(jgitCommit.getName());
+				}else {
+					diffsForTheCommit = diffsForTheCommit(repository, jgitCommit); //obtém as diffs do commit
+					diffsCommits.put(jgitCommit.getName(), diffsForTheCommit);
+				}
 				Author author = authorDao.findByNameEmail(authorName, email);
 				if(author == null) {
 					author = new Author(authorName, email);
@@ -451,7 +461,7 @@ public class Analyzer {
 				}
 				Commit commit = commitDao.findById(jgitCommit.getName());
 				if(commit == null) {
-					commit = new Commit(author, jgitCommit.getAuthorIdent().getWhen(), jgitCommit.getName());
+					commit = new Commit(author, jgitCommit.getAuthorIdent().getWhen(), jgitCommit.getName(), diffsForTheCommit.size());
 					commitDao.persist(commit);
 					commits.add(commit);
 				}
@@ -460,7 +470,8 @@ public class Analyzer {
 					String oldPath = diff.getOldPath().toString();
 					if(newPath.equals(oldPath) == false && 
 							(paths.contains(newPath) == false || paths.contains(oldPath) == false)
-							&& (paths.contains(newPath) == true || paths.contains(oldPath) == true)) {
+							&& (paths.contains(newPath) == true || paths.contains(oldPath) == true) 
+							&& (invalidPaths.contains(newPath) == false && invalidPaths.contains(oldPath) == false)) {
 						if(paths.contains(newPath)) {
 							paths.add(oldPath);
 							FileOtherPath fileOtherPath = fileOtherPathDAO.findByPathFileCommit(oldPath, file, commit);
