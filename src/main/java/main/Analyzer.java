@@ -531,6 +531,7 @@ public class Analyzer {
 						}
 					}
 				}
+				file.setCommitsAnalyzed(true);
 				BlameCommand blameCommand = new BlameCommand(repository);
 				blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
 				blameCommand.setFilePath(file.getPath());
