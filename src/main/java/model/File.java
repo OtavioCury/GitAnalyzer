@@ -16,12 +16,14 @@ public class File {
 	private Project project;
 	private int numberLines;
 	private String extension;
+	private boolean commitsAnalyzed;
 	
-	public File(String path, Project project, String extension) {
+	public File(String path, Project project, String extension, boolean commitsAnalyzed) {
 		super();
 		this.path = path;
 		this.project = project;
 		this.extension = extension;
+		this.commitsAnalyzed = commitsAnalyzed;
 	}
 	
 	public File() {
@@ -65,6 +67,14 @@ public class File {
 
 	public void setExtension(String extension) {
 		this.extension = extension;
+	}
+
+	public boolean isCommitsAnalyzed() {
+		return commitsAnalyzed;
+	}
+
+	public void setCommitsAnalyzed(boolean commitsAnalyzed) {
+		this.commitsAnalyzed = commitsAnalyzed;
 	}
 	
 }
