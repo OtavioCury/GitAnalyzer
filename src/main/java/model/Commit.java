@@ -1,7 +1,9 @@
 package model;
 
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -15,16 +17,19 @@ public class Commit {
 	private Long id;
 	@ManyToOne
 	private Author author;
+	@ElementCollection
+    private List<String> parentsIds;
 	private Date date;
 	private String externalId;
 	private int numberFilesMod;
 	
-	public Commit(Author author, Date date, String externalId, int numberFilesMod) {
+	public Commit(Author author, Date date, String externalId, int numberFilesMod, List<String> parentsIds) {
 		super();
 		this.author = author;
 		this.date = date;
 		this.externalId = externalId;
 		this.numberFilesMod = numberFilesMod;
+		this.parentsIds = parentsIds;
 	}
 	
 	public Commit() {
@@ -68,6 +73,14 @@ public class Commit {
 
 	public void setNumberFilesMod(int numberFilesMod) {
 		this.numberFilesMod = numberFilesMod;
+	}
+
+	public List<String> getParentsIds() {
+		return parentsIds;
+	}
+
+	public void setParentsIds(List<String> parentsIds) {
+		this.parentsIds = parentsIds;
 	}
 	
 }
