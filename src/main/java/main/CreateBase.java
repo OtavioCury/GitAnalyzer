@@ -48,7 +48,7 @@ import utils.ConstantsProject;
 import utils.RepositoryAnalyzer;
 
 public class CreateBase implements Runnable{
-	
+
 	private List<model.File> files;
 
 	public CreateBase(List<File> files) {
@@ -67,7 +67,8 @@ public class CreateBase implements Runnable{
 		List<Commit> commits = new ArrayList<Commit>();
 		HashMap<String, BlameResult> blameResults = new HashMap<String, BlameResult>();
 		for (model.File file : files) {
-			if(Constants.analyzedExtensions.contains(file.getExtension())) {
+			if(Constants.analyzedExtensions.contains(file.getExtension()) 
+					&& file.isCommitsAnalyzed() == false) {
 				List<String> paths = new ArrayList<String>();
 				paths.add(file.getPath());
 				List<RevCommit> log = null;
@@ -190,7 +191,6 @@ public class CreateBase implements Runnable{
 						}
 					}
 				}
-				file.setCommitsAnalyzed(true);
 				BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
 				blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
 				blameCommand.setFilePath(file.getPath());
@@ -208,6 +208,7 @@ public class CreateBase implements Runnable{
 				fileDao.merge(file);
 				blameResults.put(file.getPath(), blameResult);
 			}
+			file.setCommitsAnalyzed(true);
 		}
 		List<Author> authors = authorDao.findAll(Author.class);
 		for (Author author : authors) {
@@ -241,7 +242,7 @@ public class CreateBase implements Runnable{
 			}
 		}
 	}
-	
+
 	private static List<DiffEntry> diffsForTheCommit(Repository repo, RevCommit commit) throws IOException, AmbiguousObjectException, 
 	IncorrectObjectTypeException { 
 		AnyObjectId currentCommit = repo.resolve(commit.getName()); 
@@ -330,7 +331,7 @@ public class CreateBase implements Runnable{
 		return false;
 
 	}
-	
+
 	/**
 	 * Returns the result of a git log --follow -- < path >
 	 * @return

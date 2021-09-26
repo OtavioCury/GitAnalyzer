@@ -6,14 +6,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.diff.DiffEntry;
 
 import dao.FileDAO;
 import dao.ProjectDAO;
@@ -25,6 +30,7 @@ public class Analyzer {
 
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
 		ProjectDAO projectDao = new ProjectDAO();
+		setTimerForMap();
 		System.out.println("====== Analyzing projeto IHealth =======");
 		Project project = projectDao.findByName(Constants.projectName);
 		if(project == null) {
@@ -41,6 +47,18 @@ public class Analyzer {
         executorService.execute(new CreateBase(first));
         executorService.execute(new CreateBase(second));
         executorService.shutdown();
+	}
+	
+	private static void setTimerForMap() {
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				RepositoryAnalyzer.diffsCommits = new HashMap<String, List<DiffEntry>>();
+			}
+		};
+		Calendar today = Calendar.getInstance();
+		Timer timer = new Timer();
+		timer.schedule(task, today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
 	}
 
 	private static List<model.File> getFiles(Project project) {

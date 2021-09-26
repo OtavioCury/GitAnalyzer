@@ -11,6 +11,6 @@ public class RepositoryAnalyzer {
 	
 	public static Git git;
 	public static Repository repository;
-	public static HashMap<String, List<DiffEntry>> diffsCommits = new HashMap<String, List<DiffEntry>>();
+	public static HashMap<String, List<DiffEntry>> diffsCommits;
 	
 }
