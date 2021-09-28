@@ -14,6 +14,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -40,15 +41,19 @@ public class Analyzer {
 		RepositoryAnalyzer.git = Git.open(new File(Constants.fullPath));
 		RepositoryAnalyzer.repository = RepositoryAnalyzer.git.getRepository();
 		List<model.File> files = getFiles(project);
-		int size = files.size();
-		List<model.File> first = new ArrayList<>(files.subList(0, (size) / 2));
-        List<model.File> second = new ArrayList<>(files.subList((size) / 2, size));
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-        executorService.execute(new CreateBase(first));
-        executorService.execute(new CreateBase(second));
-        executorService.shutdown();
+		List<model.File> filesNotAnalyzed = files.stream().filter(file -> file.isCommitsAnalyzed() == false)
+				.collect(Collectors.toList());
+		int size = filesNotAnalyzed.size();
+		List<model.File> first = new ArrayList<>(filesNotAnalyzed.subList(0, (size) / 2));
+		List<model.File> second = new ArrayList<>(filesNotAnalyzed.subList((size) / 2, size));
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		executorService.execute(new CommitAnalyzer(first));
+		executorService.execute(new CommitAnalyzer(second));
+		executorService.shutdown();
+		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(files);
+		authorFileAnalyzer.run();
 	}
-	
+
 	private static void setTimerForMap() {
 		TimerTask task = new TimerTask() {
 			@Override

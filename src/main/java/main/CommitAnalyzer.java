@@ -9,20 +9,16 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.apache.xmlbeans.impl.common.Levenshtein;
-import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.diff.RenameDetector;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.AnyObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -32,13 +28,10 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import dao.AuthorDAO;
-import dao.AuthorFileDAO;
 import dao.CommitDAO;
 import dao.CommitFileDAO;
-import dao.FileDAO;
 import dao.FileOtherPathDAO;
 import model.Author;
-import model.AuthorFile;
 import model.Commit;
 import model.CommitFile;
 import model.File;
@@ -47,11 +40,11 @@ import utils.Constants;
 import utils.ConstantsProject;
 import utils.RepositoryAnalyzer;
 
-public class CreateBase implements Runnable{
+public class CommitAnalyzer implements Runnable{
 
 	private List<model.File> files;
 
-	public CreateBase(List<File> files) {
+	public CommitAnalyzer(List<File> files) {
 		super();
 		this.files = files;
 	}
@@ -61,14 +54,10 @@ public class CreateBase implements Runnable{
 		AuthorDAO authorDao = new AuthorDAO();
 		CommitDAO commitDao = new CommitDAO();
 		CommitFileDAO commitFileDao = new CommitFileDAO();
-		AuthorFileDAO authorFileDao = new AuthorFileDAO();
-		FileDAO fileDao = new FileDAO();
 		FileOtherPathDAO fileOtherPathDAO = new FileOtherPathDAO();
 		List<Commit> commits = new ArrayList<Commit>();
-		HashMap<String, BlameResult> blameResults = new HashMap<String, BlameResult>();
 		for (model.File file : files) {
-			if(Constants.analyzedExtensions.contains(file.getExtension()) 
-					&& file.isCommitsAnalyzed() == false) {
+			if(Constants.analyzedExtensions.contains(file.getExtension())) {
 				List<String> paths = new ArrayList<String>();
 				paths.add(file.getPath());
 				List<RevCommit> log = null;
@@ -77,7 +66,7 @@ public class CreateBase implements Runnable{
 				} catch (IOException | GitAPIException e) {
 					e.printStackTrace();
 				}
-				for (RevCommit jgitCommit: log) { //analisa cada commit
+				for (RevCommit jgitCommit: log) { //analyze each commit
 					String authorName = null, email = null;
 					if (jgitCommit.getAuthorIdent() != null) {
 						if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
@@ -191,55 +180,8 @@ public class CreateBase implements Runnable{
 						}
 					}
 				}
-				BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
-				blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-				blameCommand.setFilePath(file.getPath());
-				BlameResult blameResult = null;
-				try {
-					blameResult = blameCommand.call();
-				} catch (GitAPIException e) {
-					e.printStackTrace();
-				}
-				if(blameResult == null) {
-					System.out.println();
-				}
-				RawText rawText = blameResult.getResultContents();
-				file.setNumberLines(rawText.size());
-				fileDao.merge(file);
-				blameResults.put(file.getPath(), blameResult);
 			}
 			file.setCommitsAnalyzed(true);
-		}
-		List<Author> authors = authorDao.findAll(Author.class);
-		for (Author author : authors) {
-			for (model.File file : files) {
-				if(Constants.analyzedExtensions.contains(file.getExtension())) {
-					CommitFile commitFile = commitFileDao.findByAuthorFileAdd(author, file);
-					AuthorFile authorFile = authorFileDao.findByAuthorFile(author, file);
-					if(authorFile == null) {
-						authorFile = new AuthorFile();
-						int blame = 0;
-						BlameResult blameResult = blameResults.get(file.getPath());
-						RawText rawText = blameResult.getResultContents();
-						int length = rawText.size();
-						for (int i = 0; i < length; i++) {
-							PersonIdent autor = blameResult.getSourceAuthor(i);
-							if (autor.getName().equals(author.getName())) {
-								blame++;
-							}
-						}
-						authorFile.setAuthor(author);
-						authorFile.setFile(file);
-						authorFile.setNumLines(blame);
-						if(commitFile != null) {
-							authorFile.setFirstAuthor(true);
-						}else {
-							authorFile.setFirstAuthor(false);
-						}
-						authorFileDao.persist(authorFile);
-					}
-				}
-			}
 		}
 	}
 
