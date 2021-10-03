@@ -23,8 +23,6 @@ public class CommitFile {
 	private OperationType operation;
 	private int adds;
 	private int dels;
-	private int mods;
-	private int amount;
 	
 	public CommitFile(File file, OperationType operation) {
 		super();
@@ -81,21 +79,5 @@ public class CommitFile {
 
 	public void setDels(int dels) {
 		this.dels = dels;
-	}
-
-	public int getMods() {
-		return mods;
-	}
-
-	public void setMods(int mods) {
-		this.mods = mods;
-	}
-
-	public int getAmount() {
-		return amount;
-	}
-
-	public void setAmount(int amount) {
-		this.amount = amount;
 	}
 }

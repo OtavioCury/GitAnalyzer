@@ -173,9 +173,7 @@ public class CommitAnalyzer implements Runnable{
 
 								Map<String, Integer> modifications = analyze(in);
 								commitFile.setAdds(modifications.get("adds"));
-								commitFile.setMods(modifications.get("mods"));
 								commitFile.setDels(modifications.get("dels"));
-								commitFile.setAmount(commitFile.getAdds()+commitFile.getDels());
 								commitFile.setCommit(commit);
 								commitFileDao.persist(commitFile);
 

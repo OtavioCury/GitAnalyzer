@@ -51,7 +51,7 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 	}
 	
 	public List<CommitFile> findAll(){
-		return findAll(getClass());
+		return findAll(CommitFile.class);
 	}
 
 }
