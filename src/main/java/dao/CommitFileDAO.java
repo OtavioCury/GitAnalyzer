@@ -3,7 +3,7 @@ package dao;
 import javax.persistence.Query;
 
 import enums.OperationType;
-import model.Author;
+import model.Contributor;
 import model.CommitFile;
 import model.File;
 
@@ -34,7 +34,7 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		}
 	}
 	
-	public CommitFile findByAuthorFileAdd(Author author, File file) {
+	public CommitFile findByAuthorFileAdd(Contributor author, File file) {
 		String hql = "select c from CommitFile c where "
 				+ "c.commit.author.id=:idAuthor and c.file.id=:idFile and c.operation=:operation";
 		Query q = em.createQuery(hql);

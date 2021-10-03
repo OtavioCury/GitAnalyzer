@@ -27,11 +27,12 @@ import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
-import dao.AuthorDAO;
+import dao.ContributorDAO;
 import dao.CommitDAO;
 import dao.CommitFileDAO;
+import dao.FileDAO;
 import dao.FileOtherPathDAO;
-import model.Author;
+import model.Contributor;
 import model.Commit;
 import model.CommitFile;
 import model.File;
@@ -51,9 +52,10 @@ public class CommitAnalyzer implements Runnable{
 
 	@Override
 	public void run() {
-		AuthorDAO authorDao = new AuthorDAO();
+		ContributorDAO contributorDao = new ContributorDAO();
 		CommitDAO commitDao = new CommitDAO();
 		CommitFileDAO commitFileDao = new CommitFileDAO();
+		FileDAO fileDao = new FileDAO();
 		FileOtherPathDAO fileOtherPathDAO = new FileOtherPathDAO();
 		List<Commit> commits = new ArrayList<Commit>();
 		for (model.File file : files) {
@@ -67,21 +69,23 @@ public class CommitAnalyzer implements Runnable{
 					e.printStackTrace();
 				}
 				for (RevCommit jgitCommit: log) { //analyze each commit
-					String authorName = null, email = null;
+					String authorName = null, authorEmail = null;
 					if (jgitCommit.getAuthorIdent() != null) {
 						if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
-							email = jgitCommit.getAuthorIdent().getEmailAddress();
-						}else {
-							email = jgitCommit.getCommitterIdent().getEmailAddress();
+							authorEmail = jgitCommit.getAuthorIdent().getEmailAddress();
 						}
 						if (jgitCommit.getAuthorIdent().getName() != null) {
 							authorName = jgitCommit.getAuthorIdent().getName();
-						}else {
-							authorName = jgitCommit.getCommitterIdent().getName();
 						}
-					}else {
-						email = jgitCommit.getCommitterIdent().getEmailAddress();
-						authorName = jgitCommit.getCommitterIdent().getName();
+					}
+					String committerName = null, committerEmail = null;
+					if (jgitCommit.getCommitterIdent() != null){
+						if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
+							committerEmail = jgitCommit.getCommitterIdent().getEmailAddress();
+						}
+						if (jgitCommit.getAuthorIdent().getName() != null) {
+							committerName = jgitCommit.getCommitterIdent().getName();
+						}
 					}
 					List<DiffEntry> diffsForTheCommit = null;
 					if(RepositoryAnalyzer.diffsCommits.containsKey(jgitCommit.getName())) {
@@ -94,10 +98,15 @@ public class CommitAnalyzer implements Runnable{
 						}
 						RepositoryAnalyzer.diffsCommits.put(jgitCommit.getName(), diffsForTheCommit);
 					}
-					Author author = authorDao.findByNameEmail(authorName, email);
+					Contributor author = contributorDao.findByNameEmail(authorName, authorEmail);
 					if(author == null) {
-						author = new Author(authorName, email);
-						authorDao.persist(author);
+						author = new Contributor(authorName, authorEmail);
+						contributorDao.persist(author);
+					}
+					Contributor committer = contributorDao.findByNameEmail(committerName, committerEmail);
+					if(committer == null) {
+						committer = new Contributor(committerName, committerEmail);
+						contributorDao.persist(committer);
 					}
 					Commit commit = commitDao.findById(jgitCommit.getName());
 					if(commit == null) {
@@ -105,7 +114,7 @@ public class CommitAnalyzer implements Runnable{
 						for(RevCommit parent: jgitCommit.getParents()) {
 							parents.add(parent.getName());
 						}
-						commit = new Commit(author, jgitCommit.getAuthorIdent().getWhen(), 
+						commit = new Commit(author, committer, jgitCommit.getAuthorIdent().getWhen(), 
 								jgitCommit.getName(), diffsForTheCommit.size(), parents);
 						commitDao.persist(commit);
 						commits.add(commit);
@@ -180,8 +189,9 @@ public class CommitAnalyzer implements Runnable{
 						}
 					}
 				}
+				file.setCommitsAnalyzed(true);
+				fileDao.merge(file);
 			}
-			file.setCommitsAnalyzed(true);
 		}
 	}
 

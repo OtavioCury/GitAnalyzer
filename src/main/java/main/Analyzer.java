@@ -50,8 +50,8 @@ public class Analyzer {
 		executorService.execute(new CommitAnalyzer(first));
 		executorService.execute(new CommitAnalyzer(second));
 		executorService.shutdown();
-		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(files);
-		authorFileAnalyzer.run();
+//		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(files);
+//		authorFileAnalyzer.run();
 	}
 
 	private static void setTimerForMap() {
@@ -63,7 +63,7 @@ public class Analyzer {
 		};
 		Calendar today = Calendar.getInstance();
 		Timer timer = new Timer();
-		timer.schedule(task, today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
+		timer.schedule(task, today.getTime(), (TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS))/2);
 	}
 
 	private static List<model.File> getFiles(Project project) {

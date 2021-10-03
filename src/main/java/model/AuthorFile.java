@@ -12,13 +12,13 @@ public class AuthorFile {
 	@GeneratedValue
 	private Long id;
 	@OneToOne
-	private Author author;
+	private Contributor author;
 	@OneToOne
 	private File file;
 	private int numLines;
 	private boolean firstAuthor;
 	
-	public AuthorFile(Author author, File file, int numLines) {
+	public AuthorFile(Contributor author, File file, int numLines) {
 		super();
 		this.author = author;
 		this.file = file;
@@ -36,11 +36,11 @@ public class AuthorFile {
 		this.id = id;
 	}
 
-	public Author getAuthor() {
+	public Contributor getAuthor() {
 		return author;
 	}
 
-	public void setAuthor(Author author) {
+	public void setAuthor(Contributor author) {
 		this.author = author;
 	}
 

@@ -16,16 +16,19 @@ public class Commit {
 	@GeneratedValue
 	private Long id;
 	@ManyToOne
-	private Author author;
+	private Contributor author;
+	@ManyToOne
+	private Contributor commiter;
 	@ElementCollection
     private List<String> parentsIds;
 	private Date date;
 	private String externalId;
 	private int numberFilesMod;
 	
-	public Commit(Author author, Date date, String externalId, int numberFilesMod, List<String> parentsIds) {
+	public Commit(Contributor author, Contributor commiter, Date date, String externalId, int numberFilesMod, List<String> parentsIds) {
 		super();
 		this.author = author;
+		this.commiter = commiter;
 		this.date = date;
 		this.externalId = externalId;
 		this.numberFilesMod = numberFilesMod;
@@ -43,11 +46,11 @@ public class Commit {
 		this.id = id;
 	}
 
-	public Author getAuthor() {
+	public Contributor getAuthor() {
 		return author;
 	}
 
-	public void setAuthor(Author author) {
+	public void setAuthor(Contributor author) {
 		this.author = author;
 	}
 
@@ -81,6 +84,14 @@ public class Commit {
 
 	public void setParentsIds(List<String> parentsIds) {
 		this.parentsIds = parentsIds;
+	}
+
+	public Contributor getCommiter() {
+		return commiter;
+	}
+
+	public void setCommiter(Contributor commiter) {
+		this.commiter = commiter;
 	}
 	
 }

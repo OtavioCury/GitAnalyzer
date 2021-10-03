@@ -7,8 +7,8 @@
 	<persistence-unit name="main"
 		transaction-type="RESOURCE_LOCAL">
 		
-		<class>model.Author</class>
-		<class>model.BlameFile</class>
+		<class>model.Contributor</class>
+		<class>model.AuthorFile</class>
 		<class>model.Commit</class>
 		<class>model.CommitFile</class>
 		<class>model.File</class>

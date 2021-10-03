@@ -2,7 +2,7 @@ package dao;
 
 import javax.persistence.Query;
 
-import model.Author;
+import model.Contributor;
 import model.AuthorFile;
 import model.File;
 
@@ -20,7 +20,7 @@ public class AuthorFileDAO extends GenericDAO<AuthorFile>{
 		return false;
 	}
 
-	public AuthorFile findByAuthorFile(Author author, File file) {
+	public AuthorFile findByAuthorFile(Contributor author, File file) {
 		String hql = "select a from AuthorFile a where a.author.id=:idAuthor and a.file.id=:idFile";
 		Query q = em.createQuery(hql);
 		q.setParameter("idAuthor", author.getId());

@@ -9,37 +9,37 @@ import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.lib.PersonIdent;
 
-import dao.AuthorDAO;
+import dao.ContributorDAO;
 import dao.AuthorFileDAO;
 import dao.CommitFileDAO;
 import dao.FileDAO;
-import model.Author;
+import model.Contributor;
 import model.AuthorFile;
 import model.CommitFile;
 import model.File;
 import utils.Constants;
 import utils.RepositoryAnalyzer;
 
-public class AuthorFileAnalyzer {
+public class ContributorFileAnalyzer {
 
 	private List<model.File> files;
 
-	public AuthorFileAnalyzer(List<File> files) {
+	public ContributorFileAnalyzer(List<File> files) {
 		super();
 		this.files = files;
 	}
 
 	public void run() {
-		AuthorDAO authorDao = new AuthorDAO();
+		ContributorDAO authorDao = new ContributorDAO();
 		CommitFileDAO commitFileDao = new CommitFileDAO();
-		AuthorFileDAO authorFileDao = new AuthorFileDAO();
+		AuthorFileDAO contributorFileDao = new AuthorFileDAO();
 		FileDAO fileDao = new FileDAO();
-		List<Author> authors = authorDao.findAll(Author.class);
-		for (Author author : authors) {
+		List<Contributor> contributors = authorDao.findAll(Contributor.class);
+		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
 				if(Constants.analyzedExtensions.contains(file.getExtension())) {
-					CommitFile commitFile = commitFileDao.findByAuthorFileAdd(author, file);
-					AuthorFile authorFile = authorFileDao.findByAuthorFile(author, file);
+					CommitFile commitFile = commitFileDao.findByAuthorFileAdd(contributor, file);
+					AuthorFile authorFile = contributorFileDao.findByAuthorFile(contributor, file);
 					if(authorFile == null) {
 						authorFile = new AuthorFile();
 						int blame = 0;
@@ -63,11 +63,11 @@ public class AuthorFileAnalyzer {
 						int length = rawText.size();
 						for (int i = 0; i < length; i++) {
 							PersonIdent autor = blameResult.getSourceAuthor(i);
-							if (autor.getName().equals(author.getName())) {
+							if (autor.getName().equals(contributor.getName())) {
 								blame++;
 							}
 						}
-						authorFile.setAuthor(author);
+						authorFile.setAuthor(contributor);
 						authorFile.setFile(file);
 						authorFile.setNumLines(blame);
 						if(commitFile != null) {
@@ -75,7 +75,7 @@ public class AuthorFileAnalyzer {
 						}else {
 							authorFile.setFirstAuthor(false);
 						}
-						authorFileDao.persist(authorFile);
+						contributorFileDao.persist(authorFile);
 					}
 				}
 			}
