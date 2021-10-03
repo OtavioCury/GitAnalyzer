@@ -115,7 +115,7 @@ public class CommitAnalyzer implements Runnable{
 							parents.add(parent.getName());
 						}
 						commit = new Commit(author, committer, jgitCommit.getAuthorIdent().getWhen(), 
-								jgitCommit.getName(), diffsForTheCommit.size(), parents);
+								jgitCommit.getName(), parents);
 						commitDao.persist(commit);
 						commits.add(commit);
 					}

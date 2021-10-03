@@ -1,10 +1,12 @@
 package dao;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
 import enums.OperationType;
-import model.Contributor;
 import model.CommitFile;
+import model.Contributor;
 import model.File;
 
 public class CommitFileDAO extends GenericDAO<CommitFile>{
@@ -46,6 +48,10 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		} catch (javax.persistence.NoResultException e) {
 			return null;
 		}
+	}
+	
+	public List<CommitFile> findAll(){
+		return findAll(getClass());
 	}
 
 }

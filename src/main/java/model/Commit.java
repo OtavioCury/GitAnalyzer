@@ -23,15 +23,13 @@ public class Commit {
     private List<String> parentsIds;
 	private Date date;
 	private String externalId;
-	private int numberFilesMod;
 	
-	public Commit(Contributor author, Contributor commiter, Date date, String externalId, int numberFilesMod, List<String> parentsIds) {
+	public Commit(Contributor author, Contributor commiter, Date date, String externalId, List<String> parentsIds) {
 		super();
 		this.author = author;
 		this.commiter = commiter;
 		this.date = date;
 		this.externalId = externalId;
-		this.numberFilesMod = numberFilesMod;
 		this.parentsIds = parentsIds;
 	}
 	
@@ -68,14 +66,6 @@ public class Commit {
 
 	public void setExternalId(String externalId) {
 		this.externalId = externalId;
-	}
-
-	public int getNumberFilesMod() {
-		return numberFilesMod;
-	}
-
-	public void setNumberFilesMod(int numberFilesMod) {
-		this.numberFilesMod = numberFilesMod;
 	}
 
 	public List<String> getParentsIds() {
