@@ -7,10 +7,11 @@
 	<persistence-unit name="main"
 		transaction-type="RESOURCE_LOCAL">
 		
-		<class>model.Contributor</class>
+		<class>model.AuthorBlame</class>
 		<class>model.AuthorFile</class>
 		<class>model.Commit</class>
 		<class>model.CommitFile</class>
+		<class>model.Contributor</class>
 		<class>model.File</class>
 		<class>model.FileOtherPath</class>
 		<class>model.Project</class>
@@ -23,7 +24,7 @@
 			<property name="javax.persistence.jdbc.user"
 				value="postgres" /> <!-- DB User -->
 			<property name="javax.persistence.jdbc.password"
-				value="lost" /> <!-- DB Password -->
+				value="root" /> <!-- DB Password -->
 
 			<property name="hibernate.dialect"
 				value="org.hibernate.dialect.PostgreSQLDialect" /> <!-- DB Dialect -->

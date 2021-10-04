@@ -15,16 +15,15 @@ public class AuthorFile {
 	private Contributor author;
 	@OneToOne
 	private File file;
-	private int numLines;
 	private boolean firstAuthor;
 	
-	public AuthorFile(Contributor author, File file, int numLines) {
+	public AuthorFile(Contributor author, File file, boolean firstAuthor) {
 		super();
 		this.author = author;
 		this.file = file;
-		this.numLines = numLines;
+		this.firstAuthor = firstAuthor;
 	}
-	
+
 	public AuthorFile() {
 	}
 
@@ -50,14 +49,6 @@ public class AuthorFile {
 
 	public void setFile(File file) {
 		this.file = file;
-	}
-
-	public int getNumLines() {
-		return numLines;
-	}
-
-	public void setNumLines(int numLines) {
-		this.numLines = numLines;
 	}
 
 	public boolean isFirstAuthor() {

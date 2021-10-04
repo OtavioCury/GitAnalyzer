@@ -31,8 +31,6 @@ public class Analyzer {
 
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
 		ProjectDAO projectDao = new ProjectDAO();
-		setTimerForMap();
-		System.out.println("====== Analyzing projeto IHealth =======");
 		Project project = projectDao.findByName(Constants.projectName);
 		if(project == null) {
 			project = new Project(Constants.projectName);
@@ -41,17 +39,44 @@ public class Analyzer {
 		RepositoryAnalyzer.git = Git.open(new File(Constants.fullPath));
 		RepositoryAnalyzer.repository = RepositoryAnalyzer.git.getRepository();
 		List<model.File> files = getFiles(project);
+		files = files.stream().filter(file -> Constants.analyzedExtensions.contains(file.getExtension()))
+				.collect(Collectors.toList());
+		analyzeCommits(files);
+		analyzeFiles(files);
+		analyzeContributors(files);
+	}
+
+	private static void analyzeCommits(List<model.File> files) {
 		List<model.File> filesNotAnalyzed = files.stream().filter(file -> file.isCommitsAnalyzed() == false)
 				.collect(Collectors.toList());
 		int size = filesNotAnalyzed.size();
-		List<model.File> first = new ArrayList<>(filesNotAnalyzed.subList(0, (size) / 2));
-		List<model.File> second = new ArrayList<>(filesNotAnalyzed.subList((size) / 2, size));
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
-		executorService.execute(new CommitAnalyzer(first));
-		executorService.execute(new CommitAnalyzer(second));
-		executorService.shutdown();
-//		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(files);
-//		authorFileAnalyzer.run();
+		if(size > 0) {
+			List<model.File> first = new ArrayList<>(filesNotAnalyzed.subList(0, (size) / 2));
+			List<model.File> second = new ArrayList<>(filesNotAnalyzed.subList((size) / 2, size));
+			setTimerForMap();
+			ExecutorService executorService = Executors.newFixedThreadPool(2);
+			executorService.execute(new CommitAnalyzer(first));
+			executorService.execute(new CommitAnalyzer(second));
+			executorService.shutdown();
+		}
+	}
+
+	private static void analyzeFiles(List<model.File> files) {
+		FileAnalyzer fileAnalyzer = new FileAnalyzer(files);
+		try {
+			fileAnalyzer.run();
+		} catch (GitAPIException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void analyzeContributors(List<model.File> files) {
+		ContributorFileAnalyzer contributorFileAnalyzer = new ContributorFileAnalyzer(files);
+		try {
+			contributorFileAnalyzer.run();
+		} catch (GitAPIException e) {
+			e.printStackTrace();
+		}		
 	}
 
 	private static void setTimerForMap() {

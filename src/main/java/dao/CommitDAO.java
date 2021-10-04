@@ -1,5 +1,7 @@
 package dao;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
 import model.Commit;
@@ -27,6 +29,12 @@ public class CommitDAO extends GenericDAO<Commit>{
 		} catch (javax.persistence.NoResultException e) {
 			return null;
 		}
+	}
+	
+	public List<Commit> commitsDescDate() {
+		String hql = "select c from Commit c order by c.date desc";
+		Query q = em.createQuery(hql);
+		return q.getResultList();
 	}
 
 }

@@ -5,19 +5,20 @@ import java.util.List;
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
-import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.lib.PersonIdent;
 
-import dao.ContributorDAO;
+import dao.AuthorBlameDAO;
 import dao.AuthorFileDAO;
 import dao.CommitFileDAO;
-import dao.FileDAO;
-import model.Contributor;
+import dao.ContributorDAO;
+import model.AuthorBlame;
 import model.AuthorFile;
+import model.Commit;
 import model.CommitFile;
+import model.Contributor;
 import model.File;
-import utils.Constants;
+import utils.CommitsUtils;
 import utils.RepositoryAnalyzer;
 
 public class ContributorFileAnalyzer {
@@ -29,56 +30,49 @@ public class ContributorFileAnalyzer {
 		this.files = files;
 	}
 
-	public void run() {
+	public void run() throws GitAPIException {
 		ContributorDAO authorDao = new ContributorDAO();
 		CommitFileDAO commitFileDao = new CommitFileDAO();
-		AuthorFileDAO contributorFileDao = new AuthorFileDAO();
-		FileDAO fileDao = new FileDAO();
+		AuthorFileDAO authorFileDao = new AuthorFileDAO();
+		AuthorBlameDAO authorBlameDao = new AuthorBlameDAO();
 		List<Contributor> contributors = authorDao.findAll(Contributor.class);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
-				if(Constants.analyzedExtensions.contains(file.getExtension())) {
-					CommitFile commitFile = commitFileDao.findByAuthorFileAdd(contributor, file);
-					AuthorFile authorFile = contributorFileDao.findByAuthorFile(contributor, file);
-					if(authorFile == null) {
-						authorFile = new AuthorFile();
-						int blame = 0;
+				CommitFile commitFile = commitFileDao.findByAuthorFileAdd(contributor, file);
+				AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
+				if(authorFile == null) {
+					boolean firstAuthor = false;
+					if(commitFile != null) {
+						firstAuthor = true;
+					}
+					authorFile = new AuthorFile(contributor, file, firstAuthor);
+					authorFileDao.persist(authorFile);
+				}
+				Commit lastCommit = CommitsUtils.getCurrentVersion();
+				AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, lastCommit);
+				if(authorBlame == null) {
+					int blame = 0;
+					BlameResult blameResult = null;
+					if(utils.FileAnalyzer.blameResultsFile.containsKey(file.getPath()) == false) {
 						BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
 						blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
 						blameCommand.setFilePath(file.getPath());
-						BlameResult blameResult = null;
-						try {
-							blameResult = blameCommand.call();
-						} catch (GitAPIException e) {
-							e.printStackTrace();
-						}
-						if(blameResult == null) {
-							System.out.println();
-						}
-						RawText rawText = blameResult.getResultContents();
-						if(file.getNumberLines() == 0) {
-							file.setNumberLines(rawText.size());
-							fileDao.merge(file);
-						}
-						int length = rawText.size();
-						for (int i = 0; i < length; i++) {
-							PersonIdent autor = blameResult.getSourceAuthor(i);
-							if (autor.getName().equals(contributor.getName())) {
-								blame++;
-							}
-						}
-						authorFile.setAuthor(contributor);
-						authorFile.setFile(file);
-						authorFile.setNumLines(blame);
-						if(commitFile != null) {
-							authorFile.setFirstAuthor(true);
-						}else {
-							authorFile.setFirstAuthor(false);
-						}
-						contributorFileDao.persist(authorFile);
+						blameResult = blameCommand.call();
+						utils.FileAnalyzer.blameResultsFile.put(file.getPath(), blameResult);
+					}else {
+						blameResult = utils.FileAnalyzer.blameResultsFile.get(file.getPath());
 					}
+					for (int i = 0; i < file.getNumberLines(); i++) {
+						PersonIdent autor = blameResult.getSourceAuthor(i);
+						if (autor.getName().equals(contributor.getName())) {
+							blame++;
+						}
+					}
+					authorBlame = new AuthorBlame(authorFile, lastCommit, blame);
+					authorBlameDao.persist(authorBlame);
 				}
 			}
 		}
 	}
+
 }
