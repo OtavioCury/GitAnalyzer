@@ -13,28 +13,22 @@ import model.File;
 import utils.RepositoryAnalyzer;
 
 public class FileAnalyzer {
-	
+
 	private List<model.File> files;
 
 	public FileAnalyzer(List<File> files) {
 		super();
 		this.files = files;
 	}
-	
+
 	public void run() throws GitAPIException {
 		FileDAO fileDao = new FileDAO();
 		for (model.File file : files) {
 			if(file.getNumberLines() == 0) {
-				BlameResult blameResult = null;
-				if(utils.FileAnalyzer.blameResultsFile.containsKey(file.getPath()) == false) {
-					BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
-					blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-					blameCommand.setFilePath(file.getPath());
-					blameResult = blameCommand.call();
-					utils.FileAnalyzer.blameResultsFile.put(file.getPath(), blameResult);
-				}else {
-					blameResult = utils.FileAnalyzer.blameResultsFile.get(file.getPath());
-				}
+				BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
+				blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
+				blameCommand.setFilePath(file.getPath());
+				BlameResult blameResult = blameCommand.call();
 				RawText rawText = blameResult.getResultContents();
 				int fileSize = rawText.size();
 				file.setNumberLines(fileSize);
