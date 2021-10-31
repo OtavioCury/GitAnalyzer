@@ -36,18 +36,23 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		}
 	}
 	
-	public CommitFile findByAuthorFileAdd(Contributor author, File file) {
-		String hql = "select c from CommitFile c where "
-				+ "c.commit.author.id=:idAuthor and c.file.id=:idFile and c.operation=:operation";
-		Query q = em.createQuery(hql);
+	public boolean findByAuthorFileAdd(Contributor author, File file) {
+		Query q = em.createQuery("select count(*) from CommitFile c "
+				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile and c.operation=:operation");
 		q.setParameter("idAuthor", author.getId());
 		q.setParameter("idFile", file.getId());
-		q.setParameter("operation", OperationType.ADD.getOperationType());
-		try {
-			return (CommitFile) q.getSingleResult();
-		} catch (javax.persistence.NoResultException e) {
-			return null;
-		}
+		q.setParameter("operation", OperationType.ADD);
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;
+	}
+	
+	public boolean findByAuthorFile(Contributor author, File file) {
+		Query q = em.createQuery("select count(*) from CommitFile c "
+				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
+		q.setParameter("idAuthor", author.getId());
+		q.setParameter("idFile", file.getId());
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;		
 	}
 	
 	public List<CommitFile> findAll(){

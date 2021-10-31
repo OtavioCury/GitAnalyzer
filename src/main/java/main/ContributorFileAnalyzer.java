@@ -15,10 +15,8 @@ import dao.ContributorDAO;
 import model.AuthorBlame;
 import model.AuthorFile;
 import model.Commit;
-import model.CommitFile;
 import model.Contributor;
 import model.File;
-import utils.CommitsUtils;
 import utils.RepositoryAnalyzer;
 
 public class ContributorFileAnalyzer {
@@ -36,40 +34,32 @@ public class ContributorFileAnalyzer {
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorBlameDAO authorBlameDao = new AuthorBlameDAO();
 		List<Contributor> contributors = authorDao.findAll(Contributor.class);
+		Commit lastCommit = RepositoryAnalyzer.getLastCommit();
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
-				CommitFile commitFile = commitFileDao.findByAuthorFileAdd(contributor, file);
-				AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
-				if(authorFile == null) {
-					boolean firstAuthor = false;
-					if(commitFile != null) {
-						firstAuthor = true;
+				if(commitFileDao.findByAuthorFile(contributor, file) == true) {
+					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
+					if(authorFile == null) {
+						boolean firstAuthor = commitFileDao.findByAuthorFileAdd(contributor, file);
+						authorFile = new AuthorFile(contributor, file, firstAuthor);
+						authorFileDao.persist(authorFile);
 					}
-					authorFile = new AuthorFile(contributor, file, firstAuthor);
-					authorFileDao.persist(authorFile);
-				}
-				Commit lastCommit = CommitsUtils.getCurrentVersion();
-				AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, lastCommit);
-				if(authorBlame == null) {
-					int blame = 0;
-					BlameResult blameResult = null;
-					if(utils.FileAnalyzer.blameResultsFile.containsKey(file.getPath()) == false) {
+					AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, lastCommit);
+					if(authorBlame == null) {
+						int blame = 0;
 						BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
 						blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
 						blameCommand.setFilePath(file.getPath());
-						blameResult = blameCommand.call();
-						utils.FileAnalyzer.blameResultsFile.put(file.getPath(), blameResult);
-					}else {
-						blameResult = utils.FileAnalyzer.blameResultsFile.get(file.getPath());
-					}
-					for (int i = 0; i < file.getNumberLines(); i++) {
-						PersonIdent autor = blameResult.getSourceAuthor(i);
-						if (autor.getName().equals(contributor.getName())) {
-							blame++;
+						BlameResult blameResult = blameCommand.call();
+						for (int i = 0; i < file.getNumberLines(); i++) {
+							PersonIdent autor = blameResult.getSourceAuthor(i);
+							if (autor.getName().equals(contributor.getName())) {
+								blame++;
+							}
 						}
+						authorBlame = new AuthorBlame(authorFile, lastCommit, blame);
+						authorBlameDao.persist(authorBlame);
 					}
-					authorBlame = new AuthorBlame(authorFile, lastCommit, blame);
-					authorBlameDao.persist(authorBlame);
 				}
 			}
 		}

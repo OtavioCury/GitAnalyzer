@@ -2,8 +2,8 @@ package dao;
 
 import javax.persistence.Query;
 
-import model.Contributor;
 import model.AuthorFile;
+import model.Contributor;
 import model.File;
 
 public class AuthorFileDAO extends GenericDAO<AuthorFile>{
