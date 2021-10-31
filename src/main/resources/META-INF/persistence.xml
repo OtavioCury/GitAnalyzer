@@ -8,6 +8,8 @@
 		transaction-type="RESOURCE_LOCAL">
 		
 		<class>model.AuthorBlame</class>
+		<class>model.AuthorDOA</class>
+		<class>model.AuthorDOE</class>
 		<class>model.AuthorFile</class>
 		<class>model.Commit</class>
 		<class>model.CommitFile</class>
