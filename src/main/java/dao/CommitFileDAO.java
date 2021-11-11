@@ -1,5 +1,6 @@
 package dao;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Query;
@@ -13,13 +14,11 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 
 	@Override
 	public CommitFile find(Object id) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean exist(CommitFile entity) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -46,13 +45,30 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		return exists;
 	}
 	
-	public boolean findByAuthorFile(Contributor author, File file) {
+	public Date findLastByAuthorFile(Contributor author, File file) {
+		Query q = em.createQuery("select max(c.commit.date) from CommitFile c "
+				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
+		q.setParameter("idAuthor", author.getId());
+		q.setParameter("idFile", file.getId());
+		Date date = (Date) q.getSingleResult();
+		return date;
+	}
+	
+	public boolean existsByAuthorFile(Contributor author, File file) {
 		Query q = em.createQuery("select count(*) from CommitFile c "
 				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
 		q.setParameter("idAuthor", author.getId());
 		q.setParameter("idFile", file.getId());
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;		
+	}
+	
+	public List<CommitFile> findByAuthorFile(Contributor author, File file) {
+		Query q = em.createQuery("select c from CommitFile c "
+				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
+		q.setParameter("idAuthor", author.getId());
+		q.setParameter("idFile", file.getId());
+		return q.getResultList();		
 	}
 	
 	public List<CommitFile> findAll(){

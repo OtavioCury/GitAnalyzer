@@ -10,8 +10,8 @@ import model.Contributor;
 
 public class FindAlias {
 	
-	public static List<String> emails(Contributor contributor){
-		List<String> emails = new ArrayList<String>();
+	public static List<Contributor> getAlias(Contributor contributor){
+		List<Contributor> alias = new ArrayList<Contributor>();
 		ContributorDAO contributorDAO = new ContributorDAO();
 		List<Contributor> contributors = contributorDAO.findAll(Contributor.class);
 		for(Contributor contributorAux: contributors) {
@@ -21,12 +21,12 @@ public class FindAlias {
 					int distancia = StringUtils.getLevenshteinDistance(contributor.getName(), nome);
 					if (nome.equals(contributor.getName()) || 
 							(distancia/(double)contributor.getName().length() < 0.3)) {
-						emails.add(contributorAux.getEmail());
+						alias.add(contributorAux);
 					}
 				}
 			}
 		}
-		return emails;
+		return alias;
 	}
 
 }

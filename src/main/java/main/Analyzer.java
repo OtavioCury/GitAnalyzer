@@ -73,7 +73,9 @@ public class Analyzer {
 	private static void analyzeContributors(List<model.File> files) {
 		ContributorFileAnalyzer contributorFileAnalyzer = new ContributorFileAnalyzer(files);
 		try {
-			contributorFileAnalyzer.run();
+			contributorFileAnalyzer.runFirstAuthorAnalysis();
+			contributorFileAnalyzer.runBlameAnalysis();
+			contributorFileAnalyzer.runDOEAnalysis();
 		} catch (GitAPIException e) {
 			e.printStackTrace();
 		}		
