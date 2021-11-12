@@ -10,9 +10,10 @@ import model.Contributor;
 
 public class FindAlias {
 	
-	public static List<Contributor> getAlias(Contributor contributor){
+	private ContributorDAO contributorDAO = new ContributorDAO();
+	
+	public List<Contributor> getAlias(Contributor contributor){
 		List<Contributor> alias = new ArrayList<Contributor>();
-		ContributorDAO contributorDAO = new ContributorDAO();
 		List<Contributor> contributors = contributorDAO.findAll(Contributor.class);
 		for(Contributor contributorAux: contributors) {
 			if(contributorAux.getEmail().equals(contributor.getEmail()) == false) {

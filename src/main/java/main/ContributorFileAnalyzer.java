@@ -87,6 +87,7 @@ public class ContributorFileAnalyzer {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorDoeDAO authorDoeDAO = new AuthorDoeDAO();
+		ModelDOE modelDOE = new ModelDOE();
 		List<Contributor> contributors = authorDao.findAll(Contributor.class);
 		Commit lastCommit = RepositoryAnalyzer.getLastCommit();
 		for (Contributor contributor : contributors) {
@@ -96,7 +97,7 @@ public class ContributorFileAnalyzer {
 					AuthorDOE authorDOE = authorDoeDAO.findByAuthorVersion(authorFile, lastCommit);
 					if(authorDOE == null) {
 						authorDOE = new AuthorDOE(authorFile, lastCommit, 
-								ModelDOE.getContributorFileDOE(contributor, file));
+								modelDOE.getContributorFileDOE(contributor, file));
 						authorDoeDAO.persist(authorDOE);
 					}
 				}

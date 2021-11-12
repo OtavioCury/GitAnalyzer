@@ -13,5 +13,11 @@ public class Constants {
 	
 	static public List<String> invalidPaths = Arrays.asList(new String[]{"/dev/null"});
 	static public List<String> analyzedExtensions = Arrays.asList(new String[]{"jhm.xml", "java"});
+	
+	static public double intercept = 5.28223;
+	static public double addsCoef = 0.23173;
+	static public double faCoef = 0.36151;
+	static public double numDaysCoef = -0.19421;
+	static public double sizeCoef = -0.28761;
 
 }

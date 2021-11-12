@@ -12,24 +12,21 @@ import model.Contributor;
 import model.File;
 
 public class ModelDOE {
-	private static double intercept = 5.28223;
-	private static double addsCoef = 0.23173;
-	private static double faCoef = 0.36151;
-	private static double numDaysCoef = -0.19421;
-	private static double sizeCoef = -0.28761;
+	
+	private CommitFileDAO commitFileDao = new CommitFileDAO();
+	private FindAlias findAlias = new FindAlias();
 
-	public static double getDOE(int adds, int fa, int numDays, int size) {
-		return intercept + (adds*addsCoef) + (fa*faCoef) + (numDays*numDaysCoef) + (size*sizeCoef);
+	public double getDOE(int adds, int fa, int numDays, int size) {
+		return Constants.intercept + (adds*Constants.addsCoef) + (fa*Constants.faCoef) + (numDays*Constants.numDaysCoef) + (size*Constants.sizeCoef);
 	}
 	
-	public static double getContributorFileDOE(Contributor contributor, File file) {
+	public double getContributorFileDOE(Contributor contributor, File file) {
 		return getDOE(getAdds(contributor, file), getFA(contributor, file),
 				getNumDays(contributor, file), file.getNumberLines());	
 	}
 
-	public static int getAdds(Contributor contributor, File file) {
-		CommitFileDAO commitFileDao = new CommitFileDAO();
-		List<Contributor> contributors = FindAlias.getAlias(contributor);
+	public int getAdds(Contributor contributor, File file) {
+		List<Contributor> contributors = findAlias.getAlias(contributor);
 		contributors.add(contributor);
 		int adds = 0;
 		List<CommitFile> commitsFile = new ArrayList<CommitFile>();
@@ -42,12 +39,9 @@ public class ModelDOE {
 		return adds;
 	}
 
-	public static int getFA(Contributor contributor, File file) {
-		CommitFileDAO commitFileDao = new CommitFileDAO();
-		List<Contributor> contributors = FindAlias.getAlias(contributor);
+	public int getFA(Contributor contributor, File file) {
+		List<Contributor> contributors = findAlias.getAlias(contributor);
 		contributors.add(contributor);
-		int adds = 0;
-		List<CommitFile> commitsFile = new ArrayList<CommitFile>();
 		for(Contributor contributorAux: contributors) {
 			if(commitFileDao.findByAuthorFileAdd(contributorAux, file)) {
 				return 1;
@@ -56,11 +50,9 @@ public class ModelDOE {
 		return 0;
 	}
 
-	public static int getNumDays(Contributor contributor, File file) {
-		CommitFileDAO commitFileDao = new CommitFileDAO();
-		List<Contributor> contributors = FindAlias.getAlias(contributor);
+	public int getNumDays(Contributor contributor, File file) {
+		List<Contributor> contributors = findAlias.getAlias(contributor);
 		contributors.add(contributor);
-		int adds = 0;
 		List<Date> dates = new ArrayList<Date>();
 		for(Contributor contributorAux: contributors) {
 			dates.add(commitFileDao.findLastByAuthorFile(contributorAux, file));
