@@ -35,9 +35,7 @@ public class ModelDOE {
 		contributors.add(contributor);
 		int adds = 0;
 		List<CommitFile> commitsFile = new ArrayList<CommitFile>();
-		for(Contributor contributorAux: contributors) {
-			commitsFile.addAll(commitFileDao.findByAuthorFile(contributorAux, file));
-		}
+		commitsFile.addAll(commitFileDao.findByAuthorsFile(contributors, file));
 		for(CommitFile commitFile: commitsFile) {
 			adds = adds + commitFile.getAdds();
 		}
@@ -47,10 +45,8 @@ public class ModelDOE {
 	public int getFA(Contributor contributor, File file) {
 		List<Contributor> contributors = findAlias.getAlias(contributor);
 		contributors.add(contributor);
-		for(Contributor contributorAux: contributors) {
-			if(commitFileDao.findByAuthorFileAdd(contributorAux, file)) {
-				return 1;
-			}
+		if(commitFileDao.findByAuthorsFileAdd(contributors, file)) {
+			return 1;
 		}
 		return 0;
 	}
@@ -59,9 +55,7 @@ public class ModelDOE {
 		List<Contributor> contributors = findAlias.getAlias(contributor);
 		contributors.add(contributor);
 		List<Date> dates = new ArrayList<Date>();
-		for(Contributor contributorAux: contributors) {
-			dates.add(commitFileDao.findLastByAuthorFile(contributorAux, file));
-		}
+		dates.add(commitFileDao.findLastByAuthorsFile(contributors, file));
 		Date maxDate = Collections.max(dates);
 		Date currentDate = new Date();
 		long diff = currentDate.getTime() - maxDate.getTime();

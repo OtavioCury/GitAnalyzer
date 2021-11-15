@@ -1,4 +1,4 @@
-package main;
+package analyzers;
 
 import java.util.List;
 
@@ -12,9 +12,7 @@ import dao.FileDAO;
 import model.File;
 import utils.RepositoryAnalyzer;
 
-public class FileAnalyzer {
-
-	private List<model.File> files;
+public class FileAnalyzer extends AnalyzerGeneric{
 
 	public FileAnalyzer(List<File> files) {
 		super();

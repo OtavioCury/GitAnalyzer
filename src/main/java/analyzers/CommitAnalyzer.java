@@ -1,4 +1,4 @@
-package main;
+package analyzers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -41,9 +41,7 @@ import utils.Constants;
 import utils.ConstantsProject;
 import utils.RepositoryAnalyzer;
 
-public class CommitAnalyzer implements Runnable{
-
-	private List<model.File> files;
+public class CommitAnalyzer extends AnalyzerGeneric implements Runnable{
 
 	public CommitAnalyzer(List<File> files) {
 		super();

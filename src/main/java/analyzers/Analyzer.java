@@ -1,4 +1,4 @@
-package main;
+package analyzers;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -71,11 +71,13 @@ public class Analyzer {
 	}
 	
 	private static void analyzeContributors(List<model.File> files) {
-		ContributorFileAnalyzer contributorFileAnalyzer = new ContributorFileAnalyzer(files);
+		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(files);
+		AuthorBlameAnalyzer authorBlameAnalyzer = new AuthorBlameAnalyzer(files);
+		AuthorDoeAnalyzer authorDoeAnalyzer = new AuthorDoeAnalyzer(files);
 		try {
-			//contributorFileAnalyzer.runFirstAuthorAnalysis();
-			//contributorFileAnalyzer.runBlameAnalysis();
-			contributorFileAnalyzer.runDOEAnalysis();
+			//authorFileAnalyzer.runFirstAuthorAnalysis();
+			//authorBlameAnalyzer.runBlameAnalysis();
+			authorDoeAnalyzer.runDOEAnalysis();
 		} catch (GitAPIException e) {
 			e.printStackTrace();
 		}		

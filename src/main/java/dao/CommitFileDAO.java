@@ -2,6 +2,7 @@ package dao;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 
@@ -45,10 +46,31 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		return exists;
 	}
 	
+	public boolean findByAuthorsFileAdd(List<Contributor> authors, File file) {
+		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
+		Query q = em.createQuery("select count(*) from CommitFile c "
+				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile and c.operation=:operation");
+		q.setParameter("idAuthor", ids);
+		q.setParameter("idFile", file.getId());
+		q.setParameter("operation", OperationType.ADD);
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;
+	}
+	
 	public Date findLastByAuthorFile(Contributor author, File file) {
 		Query q = em.createQuery("select max(c.commit.date) from CommitFile c "
 				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
 		q.setParameter("idAuthor", author.getId());
+		q.setParameter("idFile", file.getId());
+		Date date = (Date) q.getSingleResult();
+		return date;
+	}
+	
+	public Date findLastByAuthorsFile(List<Contributor> authors, File file) {
+		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
+		Query q = em.createQuery("select max(c.commit.date) from CommitFile c "
+				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile");
+		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
 		Date date = (Date) q.getSingleResult();
 		return date;
@@ -67,6 +89,15 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		Query q = em.createQuery("select c from CommitFile c "
 				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
 		q.setParameter("idAuthor", author.getId());
+		q.setParameter("idFile", file.getId());
+		return q.getResultList();		
+	}
+	
+	public List<CommitFile> findByAuthorsFile(List<Contributor> authors, File file) {
+		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
+		Query q = em.createQuery("select c from CommitFile c "
+				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile");
+		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
 		return q.getResultList();		
 	}
