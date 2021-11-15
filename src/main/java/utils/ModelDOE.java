@@ -18,9 +18,9 @@ public class ModelDOE {
 
 	public double getDOE(int adds, int fa, int numDays, int size) {
 		double addsModel = Constants.addsCoef*Math.log(adds + 1);
-		double faModel = Constants.faCoef*Math.log(fa + 1);
+		double faModel = Constants.faCoef*fa;
 		double numDaysModel = Constants.numDaysCoef*Math.log(numDays + 1);
-		double sizeModel = Constants.sizeCoef*Math.log(size + 1);
+		double sizeModel = Constants.sizeCoef*Math.log(size);
 		return Constants.intercept + addsModel + faModel
 				+ numDaysModel + sizeModel;
 	}
