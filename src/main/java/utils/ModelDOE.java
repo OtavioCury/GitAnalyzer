@@ -17,7 +17,8 @@ public class ModelDOE {
 	private FindAlias findAlias = new FindAlias();
 
 	public double getDOE(int adds, int fa, int numDays, int size) {
-		return Constants.intercept + (adds*Constants.addsCoef) + (fa*Constants.faCoef) + (numDays*Constants.numDaysCoef) + (size*Constants.sizeCoef);
+		return Constants.intercept + (adds*Math.log(Constants.addsCoef + 1)) + (fa*Math.log(Constants.faCoef + 1)) 
+				+ (numDays*Math.log(Constants.numDaysCoef + 1)) + (size*Math.log(Constants.sizeCoef + 1));
 	}
 	
 	public double getContributorFileDOE(Contributor contributor, File file) {
