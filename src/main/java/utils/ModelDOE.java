@@ -17,10 +17,10 @@ public class ModelDOE {
 	private FindAlias findAlias = new FindAlias();
 
 	public double getDOE(int adds, int fa, int numDays, int size) {
-		double addsModel = adds*Math.log(Constants.addsCoef + 1);
-		double faModel = fa*Math.log(Constants.faCoef + 1);
-		double numDaysModel = numDays*Math.log(Constants.numDaysCoef + 1);
-		double sizeModel = size*Math.log(Constants.sizeCoef + 1);
+		double addsModel = Constants.addsCoef*Math.log(adds + 1);
+		double faModel = Constants.faCoef*Math.log(fa + 1);
+		double numDaysModel = Constants.numDaysCoef*Math.log(numDays + 1);
+		double sizeModel = Constants.sizeCoef*Math.log(size + 1);
 		return Constants.intercept + addsModel + faModel
 				+ numDaysModel + sizeModel;
 	}
