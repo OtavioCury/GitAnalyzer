@@ -50,7 +50,7 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
 		Query q = em.createQuery("select count(*) from CommitFile c "
 				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile and c.operation=:operation");
-		q.setParameter("idAuthor", ids);
+		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
 		q.setParameter("operation", OperationType.ADD);
 		boolean exists = (Long) q.getSingleResult() > 0;
