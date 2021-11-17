@@ -31,5 +31,15 @@ public class AuthorFileDAO extends GenericDAO<AuthorFile>{
 			return null;
 		}
 	}
+	
+	public boolean existsByAuthorFile(Contributor author, File file) {
+		String hql = "select count(*) from AuthorFile a "
+				+ "where a.author.id=:idAuthor and a.file.id=:idFile";
+		Query q = em.createQuery(hql);
+		q.setParameter("idAuthor", author.getId());
+		q.setParameter("idFile", file.getId());
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;
+	}
 
 }

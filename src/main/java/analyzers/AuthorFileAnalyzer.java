@@ -26,10 +26,9 @@ public class AuthorFileAnalyzer extends AnalyzerGeneric {
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
 				if(commitFileDao.existsByAuthorFile(contributor, file) == true) {
-					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
-					if(authorFile == null) {
+					if(authorFileDao.existsByAuthorFile(contributor, file) == false) {
 						boolean firstAuthor = commitFileDao.findByAuthorFileAdd(contributor, file);
-						authorFile = new AuthorFile(contributor, file, firstAuthor);
+						AuthorFile authorFile = new AuthorFile(contributor, file, firstAuthor);
 						authorFileDao.persist(authorFile);
 					}
 				}

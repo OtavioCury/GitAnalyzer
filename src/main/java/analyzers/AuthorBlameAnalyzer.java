@@ -20,12 +20,12 @@ import model.File;
 import utils.RepositoryAnalyzer;
 
 public class AuthorBlameAnalyzer extends AnalyzerGeneric {
-	
+
 	public AuthorBlameAnalyzer(List<File> files) {
 		super();
 		this.files = files;
 	}
-	
+
 	public void runBlameAnalysis() throws GitAPIException {
 		ContributorDAO authorDao = new ContributorDAO();
 		CommitFileDAO commitFileDao = new CommitFileDAO();
@@ -37,8 +37,8 @@ public class AuthorBlameAnalyzer extends AnalyzerGeneric {
 			for (model.File file : files) {
 				if(commitFileDao.existsByAuthorFile(contributor, file) == true) {
 					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
-					AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, lastCommit);
-					if(authorBlame == null) {
+					if(authorBlameDao.existsByAuthorVersion(authorFile, lastCommit) == false) {
+						AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, lastCommit);
 						int blame = 0;
 						BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
 						blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);

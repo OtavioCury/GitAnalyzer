@@ -33,6 +33,16 @@ public class AuthorDoeDAO extends GenericDAO<AuthorDOE>{
 		}
 	}
 	
+	public boolean existsByAuthorVersion(AuthorFile authorFile, Commit version) {
+		String hql = "select count(*) from AuthorDOE a "
+				+ "where a.authorFile.id=:idAuthorFile and a.version.id=:idVersion";
+		Query q = em.createQuery(hql);
+		q.setParameter("idAuthorFile", authorFile.getId());
+		q.setParameter("idVersion", version.getId());
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;
+	}
+	
 	public List<AuthorDOE> findByFileVersion(File file, Commit version) {
 		String hql = "select a from AuthorDOE a where a.authorFile.file.id=:idFile and a.version.id=:idVersion";
 		Query q = em.createQuery(hql);

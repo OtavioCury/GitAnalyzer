@@ -35,9 +35,8 @@ public class AuthorDoeAnalyzer extends AnalyzerGeneric {
 			for (model.File file : files) {
 				if(commitFileDao.existsByAuthorFile(contributor, file) == true) {
 					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
-					AuthorDOE authorDOE = authorDoeDAO.findByAuthorVersion(authorFile, lastCommit);
-					if(authorDOE == null) {
-						authorDOE = new AuthorDOE(authorFile, lastCommit, 
+					if(authorDoeDAO.existsByAuthorVersion(authorFile, lastCommit) == false) {
+						AuthorDOE authorDOE = new AuthorDOE(authorFile, lastCommit, 
 								modelDOE.getContributorFileDOE(contributor, file));
 						authorDoeDAO.persist(authorDOE);
 					}
