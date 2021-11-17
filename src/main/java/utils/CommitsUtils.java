@@ -7,6 +7,10 @@ import model.Commit;
 
 public class CommitsUtils {
 	
+	/**
+	 * Return last commit logged
+	 * @return
+	 */
 	public static Commit getCurrentVersion() {
 		CommitDAO commitDAO = new CommitDAO();
 		List<Commit> commits = commitDAO.commitsDescDate();

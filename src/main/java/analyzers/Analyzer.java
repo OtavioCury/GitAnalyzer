@@ -23,8 +23,12 @@ import org.eclipse.jgit.diff.DiffEntry;
 
 import dao.FileDAO;
 import dao.ProjectDAO;
+import model.Commit;
+import model.Contributor;
 import model.Project;
+import utils.CommitsUtils;
 import utils.Constants;
+import utils.ModelDOE;
 import utils.RepositoryAnalyzer;
 
 public class Analyzer {
@@ -44,6 +48,16 @@ public class Analyzer {
 		analyzeCommits(files);
 		analyzeFiles(files);
 		analyzeContributors(files);
+		getMantainers(files);
+	}
+	
+	private static void getMantainers(List<model.File> files) {
+		ModelDOE modelDOE = new ModelDOE();
+		Commit currentVersion = CommitsUtils.getCurrentVersion();
+		for (model.File file : files) {
+			List<Contributor> mantainers = modelDOE.getMantainersByFile(currentVersion, file, Constants.thresholdMantainer);
+			System.out.println();
+		}
 	}
 
 	private static void analyzeCommits(List<model.File> files) {

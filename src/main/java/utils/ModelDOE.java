@@ -2,11 +2,15 @@ package utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import dao.AuthorDoeDAO;
 import dao.CommitFileDAO;
+import model.AuthorDOE;
+import model.Commit;
 import model.CommitFile;
 import model.Contributor;
 import model.File;
@@ -14,6 +18,7 @@ import model.File;
 public class ModelDOE {
 	
 	private CommitFileDAO commitFileDao = new CommitFileDAO();
+	private AuthorDoeDAO authorDoeDao = new AuthorDoeDAO();
 	private FindAlias findAlias = new FindAlias();
 
 	public double getDOE(int adds, int fa, int numDays, int size) {
@@ -61,5 +66,18 @@ public class ModelDOE {
 		long diff = currentDate.getTime() - maxDate.getTime();
 		int diffDays = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 		return diffDays;
+	}
+	
+	public List<Contributor> getMantainersByFile(Commit version, File file, double threshold){
+		List<Contributor> mantainers = new ArrayList<Contributor>();
+		List<AuthorDOE> does = authorDoeDao.findByFileVersion(file, version);
+		AuthorDOE maxDoe = does.stream().max(Comparator.comparing(AuthorDOE::getDegreeOfExpertise)).get();
+		for(AuthorDOE doe: does) {
+			double normalizedDoe = doe.getDegreeOfExpertise()/maxDoe.getDegreeOfExpertise();
+			if(normalizedDoe > threshold) {
+				mantainers.add(doe.getAuthorFile().getAuthor());
+			}
+		}
+		return mantainers;
 	}
 }

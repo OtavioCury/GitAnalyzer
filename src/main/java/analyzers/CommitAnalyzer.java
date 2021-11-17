@@ -38,7 +38,6 @@ import model.Contributor;
 import model.File;
 import model.FileOtherPath;
 import utils.Constants;
-import utils.ConstantsProject;
 import utils.RepositoryAnalyzer;
 
 public class CommitAnalyzer extends AnalyzerGeneric implements Runnable{
@@ -143,13 +142,13 @@ public class CommitAnalyzer extends AnalyzerGeneric implements Runnable{
 						CommitFile commitFile = commitFileDao.findByCommitFile(commit.getExternalId(), file.getPath());
 						if(commitFile == null) {
 							commitFile = new CommitFile();
-							if(diff.getChangeType().name().equals(ConstantsProject.ADD)){
+							if(diff.getChangeType().name().equals(Constants.ADD)){
 								commitFile.setOperation(enums.OperationType.ADD);
-							}else if(diff.getChangeType().name().equals(ConstantsProject.DELETE)){
+							}else if(diff.getChangeType().name().equals(Constants.DELETE)){
 								commitFile.setOperation(enums.OperationType.DEL);
-							}else if(diff.getChangeType().name().equals(ConstantsProject.MODIFY)){
+							}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
 								commitFile.setOperation(enums.OperationType.MOD);
-							}else if(diff.getChangeType().name().equals(ConstantsProject.RENAME)) {
+							}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
 								commitFile.setOperation(enums.OperationType.REN);
 							}else{
 								continue;
