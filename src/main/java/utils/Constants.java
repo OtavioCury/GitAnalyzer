@@ -6,9 +6,9 @@ import java.util.List;
 
 public class Constants {
 	
-	public static String fullPath = "/media/lost/e04b3034-2506-41c9-a1d4-e3d38fe04256/otavio/projetoIHealth/ihealth/ihealth/.git";
+	public static String fullPath = "/home/otavio/Área de Trabalho/Analise doutorado/projeto_ihealth/ihealth/ihealth/.git";
 	public static String projectName = "IHealth";
-	public static String filesFile = "/media/lost/e04b3034-2506-41c9-a1d4-e3d38fe04256/otavio/projetoIHealth/ihealth/ihealth/filelist.log";
+	public static String filesFile = "/home/otavio/Área de Trabalho/Analise doutorado/projeto_ihealth/ihealth/ihealth/filelist.log";
 	public static SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
 	
 	public static List<String> invalidPaths = Arrays.asList(new String[]{"/dev/null"});

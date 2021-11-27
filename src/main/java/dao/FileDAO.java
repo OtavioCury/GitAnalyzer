@@ -9,13 +9,11 @@ public class FileDAO extends GenericDAO<File>{
 
 	@Override
 	public File find(Object id) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean exist(File entity) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	

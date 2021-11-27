@@ -32,7 +32,7 @@ public class ModelDOE {
 	
 	public double getContributorFileDOE(Contributor contributor, File file) {
 		return getDOE(getAdds(contributor, file), getFA(contributor, file),
-				getNumDays(contributor, file), file.getNumberLines());	
+				getNumDays(contributor, file), 3);	
 	}
 
 	public int getAdds(Contributor contributor, File file) {

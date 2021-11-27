@@ -15,6 +15,7 @@
 		<class>model.CommitFile</class>
 		<class>model.Contributor</class>
 		<class>model.File</class>
+		<class>model.FileCommit</class>
 		<class>model.FileOtherPath</class>
 		<class>model.Project</class>
 

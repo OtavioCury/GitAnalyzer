@@ -8,13 +8,11 @@ public class ContributorDAO extends GenericDAO<Contributor>{
 
 	@Override
 	public Contributor find(Object id) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean exist(Contributor entity) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	

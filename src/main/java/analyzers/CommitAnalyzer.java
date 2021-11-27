@@ -11,6 +11,7 @@ import java.util.Stack;
 import org.apache.xmlbeans.impl.common.Levenshtein;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.RawTextComparator;
@@ -31,161 +32,143 @@ import dao.CommitDAO;
 import dao.CommitFileDAO;
 import dao.ContributorDAO;
 import dao.FileDAO;
-import dao.FileOtherPathDAO;
 import model.Commit;
 import model.CommitFile;
 import model.Contributor;
 import model.File;
-import model.FileOtherPath;
+import model.Project;
 import utils.Constants;
+import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
-public class CommitAnalyzer extends AnalyzerGeneric implements Runnable{
+public class CommitAnalyzer extends AnalyzerGeneric{
 
-	public CommitAnalyzer(List<File> files) {
+	public CommitAnalyzer(Project project) {
 		super();
-		this.files = files;
+		this.project = project;
 	}
 
-	@Override
-	public void run() {
+	public void run() throws NoHeadException, GitAPIException, IOException {
 		ContributorDAO contributorDao = new ContributorDAO();
 		CommitDAO commitDao = new CommitDAO();
 		CommitFileDAO commitFileDao = new CommitFileDAO();
-		FileDAO fileDao = new FileDAO();
-		FileOtherPathDAO fileOtherPathDAO = new FileOtherPathDAO();
-		List<Commit> commits = new ArrayList<Commit>();
-		for (model.File file : files) {
-			List<String> paths = new ArrayList<String>();
-			paths.add(file.getPath());
-			List<RevCommit> log = null;
-			try {
-				log = call(RepositoryAnalyzer.git, RepositoryAnalyzer.repository, file.getPath());
-			} catch (IOException | GitAPIException e) {
-				e.printStackTrace();
+		FileDAO fileDAO = new FileDAO();
+		Git git = new Git(RepositoryAnalyzer.repository);
+		Iterable<RevCommit> commits = git.log().all().call();
+		for (RevCommit jgitCommit : commits) {//analyze each commit
+			String authorName = null, authorEmail = null;
+			if (jgitCommit.getAuthorIdent() != null) {
+				if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
+					authorEmail = jgitCommit.getAuthorIdent().getEmailAddress();
+				}
+				if (jgitCommit.getAuthorIdent().getName() != null) {
+					authorName = jgitCommit.getAuthorIdent().getName();
+				}
 			}
-			for (RevCommit jgitCommit: log) { //analyze each commit
-				String authorName = null, authorEmail = null;
-				if (jgitCommit.getAuthorIdent() != null) {
-					if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
-						authorEmail = jgitCommit.getAuthorIdent().getEmailAddress();
-					}
-					if (jgitCommit.getAuthorIdent().getName() != null) {
-						authorName = jgitCommit.getAuthorIdent().getName();
+			String committerName = null, committerEmail = null;
+			if (jgitCommit.getCommitterIdent() != null){
+				if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
+					committerEmail = jgitCommit.getCommitterIdent().getEmailAddress();
+				}
+				if (jgitCommit.getAuthorIdent().getName() != null) {
+					committerName = jgitCommit.getCommitterIdent().getName();
+				}
+			}
+			Contributor author = contributorDao.findByNameEmail(authorName, authorEmail);
+			if(author == null) {
+				author = new Contributor(authorName, authorEmail);
+				contributorDao.persist(author);
+			}
+			Contributor committer = contributorDao.findByNameEmail(committerName, committerEmail);
+			if(committer == null) {
+				committer = new Contributor(committerName, committerEmail);
+				contributorDao.persist(committer);
+			}
+			Commit commit = commitDao.findById(jgitCommit.getName());
+			if(commit == null) {
+				List<String> parents = new ArrayList<String>();
+				for(RevCommit parent: jgitCommit.getParents()) {
+					parents.add(parent.getName());
+				}
+				commit = new Commit(author, committer, jgitCommit.getAuthorIdent().getWhen(), 
+						jgitCommit.getName(), parents);
+				commitDao.persist(commit);
+			}
+			List<DiffEntry> diffsForTheCommit = diffsForTheCommit(RepositoryAnalyzer.repository, jgitCommit);
+			for (DiffEntry diff : diffsForTheCommit) {
+				String newPath = diff.getNewPath().toString();
+				String oldPath = diff.getOldPath().toString();
+				
+				File newFile = fileDAO.findByPath(newPath, project);
+				if(Constants.invalidPaths.contains(newPath) == false) {
+					if(newFile == null) {
+						newFile = new model.File(newPath, project, FileUtils.returnFileExtension(newPath));
+						fileDAO.persist(newFile);
 					}
 				}
-				String committerName = null, committerEmail = null;
-				if (jgitCommit.getCommitterIdent() != null){
-					if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
-						committerEmail = jgitCommit.getCommitterIdent().getEmailAddress();
-					}
-					if (jgitCommit.getAuthorIdent().getName() != null) {
-						committerName = jgitCommit.getCommitterIdent().getName();
+				
+				File oldFile = fileDAO.findByPath(oldPath, project);
+				if(Constants.invalidPaths.contains(oldPath) == false) {
+					if(oldFile == null) {
+						oldFile = new model.File(oldPath, project, FileUtils.returnFileExtension(oldPath));
+						fileDAO.persist(oldFile);
 					}
 				}
-				List<DiffEntry> diffsForTheCommit = null;
-				if(RepositoryAnalyzer.diffsCommits.containsKey(jgitCommit.getName())) {
-					diffsForTheCommit = RepositoryAnalyzer.diffsCommits.get(jgitCommit.getName());
+				
+				if(newPath.equals(oldPath) == false && newFile != null && oldFile != null) {
+					newFile.setOriginalFile(oldFile);
+					fileDAO.merge(newFile);
+				}
+				File file = null;
+				if(newFile != null) {
+					file = newFile;
 				}else {
+					file = oldFile;
+				}
+				CommitFile commitFile = commitFileDao.findByCommitFile(commit.getExternalId(), file.getPath());
+				if(commitFile == null) {
+					commitFile = new CommitFile();
+					if(diff.getChangeType().name().equals(Constants.ADD)){
+						commitFile.setOperation(enums.OperationType.ADD);
+					}else if(diff.getChangeType().name().equals(Constants.DELETE)){
+						commitFile.setOperation(enums.OperationType.DEL);
+					}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
+						commitFile.setOperation(enums.OperationType.MOD);
+					}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
+						commitFile.setOperation(enums.OperationType.REN);
+					}else{
+						continue;
+					}
+
+					commitFile.setFile(file);
+
+					ByteArrayOutputStream stream = new ByteArrayOutputStream();
+					DiffFormatter diffFormatter = new DiffFormatter( stream );
+					diffFormatter.setRepository(RepositoryAnalyzer.repository);
 					try {
-						diffsForTheCommit = diffsForTheCommit(RepositoryAnalyzer.repository, jgitCommit);
+						diffFormatter.format(diff);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					RepositoryAnalyzer.diffsCommits.put(jgitCommit.getName(), diffsForTheCommit);
-				}
-				Contributor author = contributorDao.findByNameEmail(authorName, authorEmail);
-				if(author == null) {
-					author = new Contributor(authorName, authorEmail);
-					contributorDao.persist(author);
-				}
-				Contributor committer = contributorDao.findByNameEmail(committerName, committerEmail);
-				if(committer == null) {
-					committer = new Contributor(committerName, committerEmail);
-					contributorDao.persist(committer);
-				}
-				Commit commit = commitDao.findById(jgitCommit.getName());
-				if(commit == null) {
-					List<String> parents = new ArrayList<String>();
-					for(RevCommit parent: jgitCommit.getParents()) {
-						parents.add(parent.getName());
+
+					String in = stream.toString();
+
+					Map<String, Integer> modifications = analyze(in);
+					commitFile.setAdds(modifications.get("adds"));
+					commitFile.setDels(modifications.get("dels"));
+					commitFile.setCommit(commit);
+					commitFileDao.persist(commitFile);
+
+					try {
+						diffFormatter.flush();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-					commit = new Commit(author, committer, jgitCommit.getAuthorIdent().getWhen(), 
-							jgitCommit.getName(), parents);
-					commitDao.persist(commit);
-					commits.add(commit);
+					diffFormatter.close();
 				}
-				for (DiffEntry diff : diffsForTheCommit) {
-					String newPath = diff.getNewPath().toString();
-					String oldPath = diff.getOldPath().toString();
-					if(newPath.equals(oldPath) == false && 
-							(paths.contains(newPath) == false || paths.contains(oldPath) == false)
-							&& (paths.contains(newPath) == true || paths.contains(oldPath) == true) 
-							&& (Constants.invalidPaths.contains(newPath) == false && Constants.invalidPaths.contains(oldPath) == false)) {
-						if(paths.contains(newPath)) {
-							paths.add(oldPath);
-							FileOtherPath fileOtherPath = fileOtherPathDAO.findByPathFileCommit(oldPath, file, commit);
-							if(fileOtherPath == null) {
-								fileOtherPath = new FileOtherPath(oldPath, file, commit);
-								fileOtherPathDAO.persist(fileOtherPath);
-							}
-						}else {
-							paths.add(newPath);
-							FileOtherPath fileOtherPath = fileOtherPathDAO.findByPathFileCommit(newPath, file, commit);
-							if(fileOtherPath == null) {
-								fileOtherPath = new FileOtherPath(newPath, file, commit);
-								fileOtherPathDAO.persist(fileOtherPath);
-							}
-						}
-					}
-					if((paths.contains(newPath) == true || paths.contains(oldPath) == true)) {
-						CommitFile commitFile = commitFileDao.findByCommitFile(commit.getExternalId(), file.getPath());
-						if(commitFile == null) {
-							commitFile = new CommitFile();
-							if(diff.getChangeType().name().equals(Constants.ADD)){
-								commitFile.setOperation(enums.OperationType.ADD);
-							}else if(diff.getChangeType().name().equals(Constants.DELETE)){
-								commitFile.setOperation(enums.OperationType.DEL);
-							}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
-								commitFile.setOperation(enums.OperationType.MOD);
-							}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
-								commitFile.setOperation(enums.OperationType.REN);
-							}else{
-								continue;
-							}
-
-							commitFile.setFile(file);
-
-							ByteArrayOutputStream stream = new ByteArrayOutputStream();
-							DiffFormatter diffFormatter = new DiffFormatter( stream );
-							diffFormatter.setRepository(RepositoryAnalyzer.repository);
-							try {
-								diffFormatter.format(diff);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-
-							String in = stream.toString();
-
-							Map<String, Integer> modifications = analyze(in);
-							commitFile.setAdds(modifications.get("adds"));
-							commitFile.setDels(modifications.get("dels"));
-							commitFile.setCommit(commit);
-							commitFileDao.persist(commitFile);
-
-							try {
-								diffFormatter.flush();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-							diffFormatter.close();
-						}
-					}
-				}
-				file.setCommitsAnalyzed(true);
-				fileDao.merge(file);
 			}
 		}
+		git.close();
 	}
 
 	private static List<DiffEntry> diffsForTheCommit(Repository repo, RevCommit commit) throws IOException, AmbiguousObjectException, 

@@ -1,5 +1,7 @@
 package dao;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
 import model.Commit;
@@ -10,13 +12,11 @@ public class FileOtherPathDAO extends GenericDAO<FileOtherPath>{
 
 	@Override
 	public FileOtherPath find(Object id) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean exist(FileOtherPath entity) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	
@@ -26,6 +26,17 @@ public class FileOtherPathDAO extends GenericDAO<FileOtherPath>{
 		q.setParameter("path", path);
 		q.setParameter("file", file.getId());
 		q.setParameter("commit", commit.getId());
+		try {
+			return (FileOtherPath) q.getSingleResult();
+		} catch (javax.persistence.NoResultException e) {
+			return null;
+		}
+	}
+	
+	public FileOtherPath findByPaths(List<String> paths) {
+		String hql = "select f from FileOtherPath f where f.path in (:paths)";
+		Query q = em.createQuery(hql);
+		q.setParameter("paths", paths);
 		try {
 			return (FileOtherPath) q.getSingleResult();
 		} catch (javax.persistence.NoResultException e) {

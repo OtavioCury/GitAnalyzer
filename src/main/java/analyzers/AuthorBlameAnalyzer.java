@@ -44,7 +44,7 @@ public class AuthorBlameAnalyzer extends AnalyzerGeneric {
 						blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
 						blameCommand.setFilePath(file.getPath());
 						BlameResult blameResult = blameCommand.call();
-						for (int i = 0; i < file.getNumberLines(); i++) {
+						for (int i = 0; i < 4; i++) {
 							PersonIdent autor = blameResult.getSourceAuthor(i);
 							if (autor.getName().equals(contributor.getName())) {
 								blame++;

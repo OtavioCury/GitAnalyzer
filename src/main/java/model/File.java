@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity
 public class File {
@@ -14,18 +15,25 @@ public class File {
 	private String path;
 	@ManyToOne
 	private Project project;
-	private int numberLines;
 	private String extension;
-	private boolean commitsAnalyzed;
+	@OneToOne
+	private File originalFile;
 	
-	public File(String path, Project project, String extension, boolean commitsAnalyzed) {
+	public File(String path, Project project, String extension) {
 		super();
 		this.path = path;
 		this.project = project;
 		this.extension = extension;
-		this.commitsAnalyzed = commitsAnalyzed;
 	}
 	
+	public File(String path, Project project, String extension, File originalFile) {
+		super();
+		this.path = path;
+		this.project = project;
+		this.extension = extension;
+		this.originalFile = originalFile;
+	}
+
 	public File() {
 	}
 
@@ -52,15 +60,7 @@ public class File {
 	public void setProject(Project project) {
 		this.project = project;
 	}
-
-	public int getNumberLines() {
-		return numberLines;
-	}
-
-	public void setNumberLines(int numberLines) {
-		this.numberLines = numberLines;
-	}
-
+	
 	public String getExtension() {
 		return extension;
 	}
@@ -69,12 +69,11 @@ public class File {
 		this.extension = extension;
 	}
 
-	public boolean isCommitsAnalyzed() {
-		return commitsAnalyzed;
+	public File getOriginalFile() {
+		return originalFile;
 	}
 
-	public void setCommitsAnalyzed(boolean commitsAnalyzed) {
-		this.commitsAnalyzed = commitsAnalyzed;
+	public void setOriginalFile(File originalFile) {
+		this.originalFile = originalFile;
 	}
-	
 }
