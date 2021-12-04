@@ -11,47 +11,58 @@ import org.eclipse.jgit.lib.PersonIdent;
 import dao.AuthorBlameDAO;
 import dao.AuthorFileDAO;
 import dao.CommitFileDAO;
-import dao.ContributorDAO;
+import dao.FileCommitDAO;
 import model.AuthorBlame;
 import model.AuthorFile;
 import model.Commit;
 import model.Contributor;
 import model.File;
+import model.FileCommit;
+import model.Project;
+import utils.ContributorsUtils;
+import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
 public class AuthorBlameAnalyzer extends AnalyzerGeneric {
 
-	public AuthorBlameAnalyzer(List<File> files) {
+	public AuthorBlameAnalyzer(Project project) {
 		super();
-		this.files = files;
+		this.project = project;
 	}
 
-	public void runBlameAnalysis() throws GitAPIException {
-		ContributorDAO authorDao = new ContributorDAO();
+	public void runBlameAnalysis() {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorBlameDAO authorBlameDao = new AuthorBlameDAO();
-		List<Contributor> contributors = authorDao.findAll(Contributor.class);
-		Commit lastCommit = RepositoryAnalyzer.getLastCommit();
+		FileCommitDAO fileCommitDAO = new FileCommitDAO(); 
+		List<File> files = FileUtils.filesToBeAnalyzed(project);
+		List<Contributor> contributors = ContributorsUtils.activeContributors(project);
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
 				if(commitFileDao.existsByAuthorFile(contributor, file) == true) {
 					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
-					if(authorBlameDao.existsByAuthorVersion(authorFile, lastCommit) == false) {
-						AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, lastCommit);
-						int blame = 0;
-						BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
-						blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-						blameCommand.setFilePath(file.getPath());
-						BlameResult blameResult = blameCommand.call();
-						for (int i = 0; i < 4; i++) {
-							PersonIdent autor = blameResult.getSourceAuthor(i);
-							if (autor.getName().equals(contributor.getName())) {
-								blame++;
+					if(authorBlameDao.existsByAuthorVersion(authorFile, currentCommit) == false
+							&& fileCommitDAO.existsByFileCommit(file, currentCommit)) {
+						try {
+							FileCommit fileCommit = fileCommitDAO.findByFileCommit(file, currentCommit); 
+							AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, currentCommit);
+							int blame = 0;
+							BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
+							blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
+							blameCommand.setFilePath(file.getPath());
+							BlameResult blameResult = blameCommand.call();
+							for (int i = 0; i < fileCommit.getNumberLines(); i++) {
+								PersonIdent autor = blameResult.getSourceAuthor(i);
+								if (autor.getName().equals(contributor.getName())) {
+									blame++;
+								}
 							}
+							authorBlame = new AuthorBlame(authorFile, currentCommit, blame);
+							authorBlameDao.persist(authorBlame);
+						} catch (GitAPIException | java.lang.NullPointerException e) {
+							e.printStackTrace();
 						}
-						authorBlame = new AuthorBlame(authorFile, lastCommit, blame);
-						authorBlameDao.persist(authorBlame);
 					}
 				}
 			}

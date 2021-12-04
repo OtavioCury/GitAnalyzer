@@ -7,25 +7,25 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class AuthorBlame {
+public class ContributorVersion {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne
-	private AuthorFile authorFile;
+	private Contributor contributor;
 	@ManyToOne
 	private Commit version;
-	private int numLines;
+	private boolean disabled;
 	
-	public AuthorBlame(AuthorFile authorFile, Commit version, int numLines) {
+	public ContributorVersion(Contributor contributor, Commit version) {
 		super();
-		this.authorFile = authorFile;
+		this.contributor = contributor;
 		this.version = version;
-		this.numLines = numLines;
 	}
 	
-	public AuthorBlame() {
+	public ContributorVersion() {
+		super();
 	}
 	
 	public Long getId() {
@@ -34,11 +34,11 @@ public class AuthorBlame {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	public AuthorFile getAuthorFile() {
-		return authorFile;
+	public Contributor getContributor() {
+		return contributor;
 	}
-	public void setAuthorFile(AuthorFile authorFile) {
-		this.authorFile = authorFile;
+	public void setContributor(Contributor contributor) {
+		this.contributor = contributor;
 	}
 	public Commit getVersion() {
 		return version;
@@ -46,10 +46,13 @@ public class AuthorBlame {
 	public void setVersion(Commit version) {
 		this.version = version;
 	}
-	public int getNumLines() {
-		return numLines;
+
+	public boolean isDisabled() {
+		return disabled;
 	}
-	public void setNumLines(int numLines) {
-		this.numLines = numLines;
+
+	public void setDisabled(boolean disabled) {
+		this.disabled = disabled;
 	}
+
 }

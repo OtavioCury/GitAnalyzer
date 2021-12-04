@@ -2,23 +2,15 @@ package analyzers;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.diff.DiffEntry;
 
 import dao.ProjectDAO;
-import model.Commit;
 import model.Contributor;
 import model.Project;
-import utils.CommitsUtils;
 import utils.Constants;
 import utils.ModelDOE;
 import utils.RepositoryAnalyzer;
@@ -35,17 +27,22 @@ public class Analyzer {
 		RepositoryAnalyzer.git = Git.open(new File(Constants.fullPath));
 		RepositoryAnalyzer.repository = RepositoryAnalyzer.git.getRepository();
 		analyzeCommits(project);
-//		analyzeFiles(files);
-//		analyzeContributors(files);
+		analyzeContributors(project);
+		analyzeFiles(project);
+		analyzeMetrics(project);
 //		getMantainers(files);
+		RepositoryAnalyzer.git.close();
 	}
 	
+	private static void analyzeContributors(Project project) {
+		ContributorAnalyzer contributorAnalyzer = new ContributorAnalyzer(project);
+		contributorAnalyzer.run();
+	}
+
 	private static void getMantainers(List<model.File> files) {
-		ModelDOE modelDOE = new ModelDOE();
-		Commit currentVersion = CommitsUtils.getCurrentVersion();
+		ModelDOE modelDOE = new ModelDOE(RepositoryAnalyzer.getCurrentCommit());
 		for (model.File file : files) {
-			List<Contributor> mantainers = modelDOE.getMantainersByFile(currentVersion, file, Constants.thresholdMantainer);
-			System.out.println();
+			List<Contributor> mantainers = modelDOE.getMantainersByFile(file, Constants.thresholdMantainer);
 		}
 	}
 
@@ -58,38 +55,27 @@ public class Analyzer {
 		}
 	}
 
-	private static void analyzeFiles(List<model.File> files) {
-		FileAnalyzer fileAnalyzer = new FileAnalyzer(files);
-		try {
-			fileAnalyzer.run();
-		} catch (GitAPIException e) {
-			e.printStackTrace();
-		}
+	private static void analyzeFiles(Project project) {
+		FileAnalyzer fileAnalyzer = new FileAnalyzer(project);
+		fileAnalyzer.run();
 	}
 	
-	private static void analyzeContributors(List<model.File> files) {
-		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(files);
-		AuthorBlameAnalyzer authorBlameAnalyzer = new AuthorBlameAnalyzer(files);
-		AuthorDoeAnalyzer authorDoeAnalyzer = new AuthorDoeAnalyzer(files);
+	private static void analyzeMetrics(Project project) {
+		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(project);
 		try {
 			authorFileAnalyzer.runFirstAuthorAnalysis();
-			authorBlameAnalyzer.runBlameAnalysis();
+		} catch (GitAPIException e1) {
+			e1.printStackTrace();
+		}
+		AuthorBlameAnalyzer authorBlameAnalyzer = new AuthorBlameAnalyzer(project);
+		authorBlameAnalyzer.runBlameAnalysis();
+		AuthorDoeAnalyzer authorDoeAnalyzer = new AuthorDoeAnalyzer(project);
+		try {
+			
 			authorDoeAnalyzer.runDOEAnalysis();
 		} catch (GitAPIException e) {
 			e.printStackTrace();
 		}		
-	}
-
-	private static void setTimerForMap() {
-		TimerTask task = new TimerTask() {
-			@Override
-			public void run() {
-				RepositoryAnalyzer.diffsCommits = new HashMap<String, List<DiffEntry>>();
-			}
-		};
-		Calendar today = Calendar.getInstance();
-		Timer timer = new Timer();
-		timer.schedule(task, today.getTime(), (TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS))/2);
 	}
 
 }

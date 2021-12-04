@@ -9,33 +9,38 @@ import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.diff.RawTextComparator;
 
 import dao.FileCommitDAO;
-import dao.FileDAO;
 import model.Commit;
 import model.File;
 import model.FileCommit;
-import utils.CommitsUtils;
+import model.Project;
+import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
 public class FileAnalyzer extends AnalyzerGeneric{
 
-	public FileAnalyzer(List<File> files) {
+	public FileAnalyzer(Project project) {
 		super();
-		this.files = files;
+		this.project = project;
 	}
 
-	public void run() throws GitAPIException {
+	public void run() {
 		FileCommitDAO fileCommitDAO = new FileCommitDAO(); 
-		Commit currentVersion = CommitsUtils.getCurrentVersion();
+		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
+		List<File> files = FileUtils.filesToBeAnalyzed(project);
 		for (model.File file : files) {
-			if(fileCommitDAO.findByFileCommit(file, currentVersion) == false) {
-				BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
-				blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-				blameCommand.setFilePath(file.getPath());
-				BlameResult blameResult = blameCommand.call();
-				RawText rawText = blameResult.getResultContents();
-				int fileSize = rawText.size();
-				FileCommit fileCommit = new FileCommit(file, currentVersion, fileSize);
-				fileCommitDAO.persist(fileCommit);
+			if(fileCommitDAO.existsByFileCommit(file, currentVersion) == false) {
+				try {
+					BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
+					blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
+					blameCommand.setFilePath(file.getPath());
+					BlameResult blameResult = blameCommand.call();
+					RawText rawText = blameResult.getResultContents();
+					int fileSize = rawText.size();
+					FileCommit fileCommit = new FileCommit(file, currentVersion, fileSize);
+					fileCommitDAO.persist(fileCommit);
+				} catch (GitAPIException | java.lang.NullPointerException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

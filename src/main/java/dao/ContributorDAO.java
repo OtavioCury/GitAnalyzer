@@ -1,8 +1,11 @@
 package dao;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
 import model.Contributor;
+import model.Project;
 
 public class ContributorDAO extends GenericDAO<Contributor>{
 
@@ -26,6 +29,14 @@ public class ContributorDAO extends GenericDAO<Contributor>{
 		} catch (javax.persistence.NoResultException e) {
 			return null;
 		}
+	}
+	
+	
+	public List<Contributor> findByProject(Project project){
+		String hql = "select c from Contributor c where c.project.id=:idProject";
+		Query q = em.createQuery(hql);
+		q.setParameter("idProject", project.getId());
+		return q.getResultList();
 	}
 
 }

@@ -33,7 +33,7 @@ public class AuthorBlameDAO extends GenericDAO<AuthorBlame>{
 	}
 	
 	public boolean existsByAuthorVersion(AuthorFile authorFile, Commit version) {
-		String hql = "select count(*) from AuthorBlame a "
+		String hql = "select count(id) from AuthorBlame a "
 				+ "where a.authorFile.id=:idAuthorFile and a.version.id=:idVersion";
 		Query q = em.createQuery(hql);
 		q.setParameter("idAuthorFile", authorFile.getId());

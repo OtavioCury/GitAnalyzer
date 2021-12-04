@@ -1,22 +1,22 @@
 package dao;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Query;
 
 import model.Commit;
+import model.Contributor;
 
 public class CommitDAO extends GenericDAO<Commit>{
 
 	@Override
 	public Commit find(Object id) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean exist(Commit entity) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	
@@ -36,5 +36,21 @@ public class CommitDAO extends GenericDAO<Commit>{
 		Query q = em.createQuery(hql);
 		return q.getResultList();
 	}
-
+	
+	public boolean findByIdExists(String id) {
+		String hql = "select count(id) from Commit c where c.externalId=:id";
+		Query q = em.createQuery(hql);
+		q.setParameter("id", id);
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;
+	}
+	
+	public Date findLastCommitByContributor(Contributor contributor) {
+		String hql = "select max(c.date) from Commit c where c.author.id=:idContributor or c.commiter.id=:idContributor";
+		Query q = em.createQuery(hql);
+		q.setParameter("idContributor", contributor.getId());
+		Date date = (Date) q.getSingleResult(); 
+		return date;
+	}
+	
 }

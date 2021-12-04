@@ -1,5 +1,7 @@
 package dao;
 
+import java.util.List;
+
 import javax.persistence.Query;
 
 import model.File;
@@ -27,6 +29,21 @@ public class FileDAO extends GenericDAO<File>{
 		} catch (javax.persistence.NoResultException e) {
 			return null;
 		}
+	}
+	
+	public List<File> findByProject(Project project){
+		String hql = "select f from File f where f.project.id=:idProject";
+		Query q = em.createQuery(hql);
+		q.setParameter("idProject", project.getId());
+		return q.getResultList();
+	}
+	
+	public List<File> findByProjectExtensions(Project project, List<String> extensions){
+		String hql = "select f from File f where f.project.id=:idProject and f.extension in (:extensions)";
+		Query q = em.createQuery(hql);
+		q.setParameter("idProject", project.getId());
+		q.setParameter("extensions", extensions);
+		return q.getResultList();
 	}
 	
 }

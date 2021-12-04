@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import javax.persistence.Query;
 
 import enums.OperationType;
+import model.Commit;
 import model.CommitFile;
 import model.Contributor;
 import model.File;
@@ -37,7 +38,7 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 	}
 	
 	public boolean findByAuthorFileAdd(Contributor author, File file) {
-		Query q = em.createQuery("select count(*) from CommitFile c "
+		Query q = em.createQuery("select count(id) from CommitFile c "
 				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile and c.operation=:operation");
 		q.setParameter("idAuthor", author.getId());
 		q.setParameter("idFile", file.getId());
@@ -48,13 +49,33 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 	
 	public boolean findByAuthorsFileAdd(List<Contributor> authors, File file) {
 		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
-		Query q = em.createQuery("select count(*) from CommitFile c "
+		Query q = em.createQuery("select count(id) from CommitFile c "
 				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile and c.operation=:operation");
 		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
 		q.setParameter("operation", OperationType.ADD);
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;
+	}
+	
+	public boolean findLastDelByFileVersion(File file, Commit version) {
+		String hql = "select max(cf.commit.date) from CommitFile cf where cf.file.id=:idFile and cf.operation=:operation and cf.commit.date<=:maxDate";
+		Query q = em.createQuery(hql);
+		q.setParameter("idFile", file.getId());
+		q.setParameter("operation", OperationType.DEL);
+		q.setParameter("maxDate", version.getDate());
+		Date date = (Date) q.getSingleResult();
+		if(date != null) {
+			hql = "select count(id) from CommitFile cf where cf.file.id=:idFile and cf.commit.date > :date and cf.commit.date<=:maxDate";
+			q = em.createQuery(hql);
+			q.setParameter("idFile", file.getId());
+			q.setParameter("date", date);
+			q.setParameter("maxDate", version.getDate());
+			boolean exists = (Long) q.getSingleResult() == 0;
+			return exists;
+		}else {
+			return false;
+		}
 	}
 	
 	public Date findLastByAuthorFile(Contributor author, File file) {
@@ -66,18 +87,19 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		return date;
 	}
 	
-	public Date findLastByAuthorsFile(List<Contributor> authors, File file) {
+	public Date findLastByAuthorsFileToVersion(List<Contributor> authors, File file, Commit version) {
 		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
 		Query q = em.createQuery("select max(c.commit.date) from CommitFile c "
-				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile");
+				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile and c.commit.date<=:maxDate");
 		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
+		q.setParameter("maxDate", version.getDate());
 		Date date = (Date) q.getSingleResult();
 		return date;
 	}
 	
 	public boolean existsByAuthorFile(Contributor author, File file) {
-		Query q = em.createQuery("select count(*) from CommitFile c "
+		Query q = em.createQuery("select count(id) from CommitFile c "
 				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
 		q.setParameter("idAuthor", author.getId());
 		q.setParameter("idFile", file.getId());
@@ -93,12 +115,13 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		return q.getResultList();		
 	}
 	
-	public List<CommitFile> findByAuthorsFile(List<Contributor> authors, File file) {
+	public List<CommitFile> findByAuthorsFileToVersion(List<Contributor> authors, File file, Commit version) {
 		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
 		Query q = em.createQuery("select c from CommitFile c "
-				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile");
+				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile and c.commit.date<=:maxDate");
 		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
+		q.setParameter("maxDate", version.getDate());
 		return q.getResultList();		
 	}
 	

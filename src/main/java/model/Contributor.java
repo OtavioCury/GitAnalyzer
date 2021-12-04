@@ -2,21 +2,26 @@ package model;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class Contributor {
 	
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String name;
 	private String email;
+	@ManyToOne
+	private Project project;
 	
-	public Contributor(String name, String email) {
+	public Contributor(String name, String email, Project project) {
 		super();
 		this.name = name;
 		this.email = email;
+		this.project = project;
 	}
 	
 	public Contributor() {
@@ -44,5 +49,13 @@ public class Contributor {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public Project getProject() {
+		return project;
+	}
+
+	public void setProject(Project project) {
+		this.project = project;
 	}
 }
