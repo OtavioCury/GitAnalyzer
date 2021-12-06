@@ -1,6 +1,5 @@
 package utils;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -8,10 +7,6 @@ import java.util.Date;
 import java.util.List;
 
 public class Constants {
-	
-	public static String fullPath = "C:\\Users\\OTAVIO\\Desktop\\GitAnalyzer\\projetos\\ihealth\\.git";
-	public static String projectName = "IHealth";
-	public static SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
 	
 	public static List<String> invalidPaths = Arrays.asList(new String[]{"/dev/null"});
 	public static List<String> analyzedExtensions = Arrays.asList(new String[]{"jhm.xml", "java"});

@@ -15,25 +15,34 @@ import utils.Constants;
 import utils.ModelDOE;
 import utils.RepositoryAnalyzer;
 
-public class Analyzer {
+public class MainAnalyzer {
 
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
+		String path = args[0];
+		String projectName = extractProjectName(path);
 		ProjectDAO projectDao = new ProjectDAO();
-		Project project = projectDao.findByName(Constants.projectName);
+		Project project = projectDao.findByName(projectName);
 		if(project == null) {
-			project = new Project(Constants.projectName);
+			project = new Project(projectName);
 			projectDao.persist(project);
 		}
-		RepositoryAnalyzer.git = Git.open(new File(Constants.fullPath));
+		RepositoryAnalyzer.git = Git.open(new File(path));
 		RepositoryAnalyzer.repository = RepositoryAnalyzer.git.getRepository();
 		analyzeCommits(project);
 		analyzeContributors(project);
 		analyzeFiles(project);
 		analyzeMetrics(project);
-//		getMantainers(files);
+		//		getMantainers(files);
 		RepositoryAnalyzer.git.close();
 	}
-	
+
+	private static String extractProjectName(String path) {
+		String fileSeparator = File.separator;
+		String[] splitedPath = path.split("\\"+fileSeparator);
+		String projectName = splitedPath[splitedPath.length - 2];
+		return projectName;
+	}
+
 	private static void analyzeContributors(Project project) {
 		ContributorAnalyzer contributorAnalyzer = new ContributorAnalyzer(project);
 		contributorAnalyzer.run();
@@ -59,7 +68,7 @@ public class Analyzer {
 		FileAnalyzer fileAnalyzer = new FileAnalyzer(project);
 		fileAnalyzer.run();
 	}
-	
+
 	private static void analyzeMetrics(Project project) {
 		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(project);
 		try {
@@ -71,7 +80,7 @@ public class Analyzer {
 		authorBlameAnalyzer.runBlameAnalysis();
 		AuthorDoeAnalyzer authorDoeAnalyzer = new AuthorDoeAnalyzer(project);
 		try {
-			
+
 			authorDoeAnalyzer.runDOEAnalysis();
 		} catch (GitAPIException e) {
 			e.printStackTrace();
