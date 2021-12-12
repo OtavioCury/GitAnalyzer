@@ -1,5 +1,6 @@
 package model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,11 +12,14 @@ public class Project {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@Column(unique=true)
 	private String name;
+	private String currentPath;
 	
-	public Project(String name) {
+	public Project(String name, String currentPath) {
 		super();
 		this.name = name;
+		this.currentPath = currentPath;
 	}
 
 	public Project() {
@@ -36,6 +40,14 @@ public class Project {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getCurrentPath() {
+		return currentPath;
+	}
+
+	public void setCurrentPath(String currentPath) {
+		this.currentPath = currentPath;
 	}	
 
 }

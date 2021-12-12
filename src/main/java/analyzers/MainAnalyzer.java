@@ -1,10 +1,8 @@
 package analyzers;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 
@@ -12,35 +10,51 @@ import dao.ProjectDAO;
 import model.Contributor;
 import model.Project;
 import utils.Constants;
-import utils.ModelDOE;
+import utils.DoeUtils;
 import utils.RepositoryAnalyzer;
 
 public class MainAnalyzer {
 
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
-		String path = args[0];
-		String projectName = extractProjectName(path);
+		ProjectInitializer.init(args[0]);
+		String projectName = ProjectInitializer.extractProjectName(args[0]);
 		ProjectDAO projectDao = new ProjectDAO();
 		Project project = projectDao.findByName(projectName);
-		if(project == null) {
-			project = new Project(projectName);
-			projectDao.persist(project);
-		}
-		RepositoryAnalyzer.git = Git.open(new File(path));
-		RepositoryAnalyzer.repository = RepositoryAnalyzer.git.getRepository();
+		RepositoryAnalyzer.initRepository(projectName);
 		analyzeCommits(project);
 		analyzeContributors(project);
 		analyzeFiles(project);
-		analyzeMetrics(project);
-		//		getMantainers(files);
+		analyzeAuthorFile(project);
+		analyzeDoe(project);
+		analyzeDoa(project);
 		RepositoryAnalyzer.git.close();
 	}
 
-	private static String extractProjectName(String path) {
-		String fileSeparator = File.separator;
-		String[] splitedPath = path.split("\\"+fileSeparator);
-		String projectName = splitedPath[splitedPath.length - 2];
-		return projectName;
+	private static void analyzeDoa(Project project) {
+		AuthorDoaAnalyzer authorDoaAnalyzer = new AuthorDoaAnalyzer(project);
+		try {
+			authorDoaAnalyzer.runDOAAnalysis();
+		} catch (GitAPIException e) {
+			e.printStackTrace();
+		}		
+	}
+
+	private static void analyzeDoe(Project project) {
+		AuthorDoeAnalyzer authorDoeAnalyzer = new AuthorDoeAnalyzer(project);
+		try {
+			authorDoeAnalyzer.runDOEAnalysis();
+		} catch (GitAPIException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void analyzeAuthorFile(Project project) {
+		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(project);
+		try {
+			authorFileAnalyzer.runFirstAuthorAnalysis();
+		} catch (GitAPIException e1) {
+			e1.printStackTrace();
+		}		
 	}
 
 	private static void analyzeContributors(Project project) {
@@ -49,7 +63,7 @@ public class MainAnalyzer {
 	}
 
 	private static void getMantainers(List<model.File> files) {
-		ModelDOE modelDOE = new ModelDOE(RepositoryAnalyzer.getCurrentCommit());
+		DoeUtils modelDOE = new DoeUtils(RepositoryAnalyzer.getCurrentCommit());
 		for (model.File file : files) {
 			List<Contributor> mantainers = modelDOE.getMantainersByFile(file, Constants.thresholdMantainer);
 		}
@@ -67,24 +81,6 @@ public class MainAnalyzer {
 	private static void analyzeFiles(Project project) {
 		FileAnalyzer fileAnalyzer = new FileAnalyzer(project);
 		fileAnalyzer.run();
-	}
-
-	private static void analyzeMetrics(Project project) {
-		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(project);
-		try {
-			authorFileAnalyzer.runFirstAuthorAnalysis();
-		} catch (GitAPIException e1) {
-			e1.printStackTrace();
-		}
-		AuthorBlameAnalyzer authorBlameAnalyzer = new AuthorBlameAnalyzer(project);
-		authorBlameAnalyzer.runBlameAnalysis();
-		AuthorDoeAnalyzer authorDoeAnalyzer = new AuthorDoeAnalyzer(project);
-		try {
-
-			authorDoeAnalyzer.runDOEAnalysis();
-		} catch (GitAPIException e) {
-			e.printStackTrace();
-		}		
 	}
 
 }

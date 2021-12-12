@@ -23,7 +23,9 @@ import utils.ContributorsUtils;
 import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
-public class AuthorBlameAnalyzer extends AnalyzerGeneric {
+public class AuthorBlameAnalyzer {
+	
+	private Project project;
 
 	public AuthorBlameAnalyzer(Project project) {
 		super();

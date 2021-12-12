@@ -78,15 +78,6 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		}
 	}
 	
-	public Date findLastByAuthorFile(Contributor author, File file) {
-		Query q = em.createQuery("select max(c.commit.date) from CommitFile c "
-				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
-		q.setParameter("idAuthor", author.getId());
-		q.setParameter("idFile", file.getId());
-		Date date = (Date) q.getSingleResult();
-		return date;
-	}
-	
 	public Date findLastByAuthorsFileToVersion(List<Contributor> authors, File file, Commit version) {
 		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
 		Query q = em.createQuery("select max(c.commit.date) from CommitFile c "
@@ -107,22 +98,37 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 		return exists;		
 	}
 	
-	public List<CommitFile> findByAuthorFile(Contributor author, File file) {
-		Query q = em.createQuery("select c from CommitFile c "
-				+ "where c.commit.author.id=:idAuthor and c.file.id=:idFile");
-		q.setParameter("idAuthor", author.getId());
+	public int numberCommitsFileAuthorsVersion(List<Contributor> authors, File file, Commit version) {
+		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
+		Query q = em.createQuery("select count(id) from CommitFile c where c.commit.author.id in (:ids) "
+				+ "and c.file.id=:idFile and c.commit.date <=:maxDate");
+		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
-		return q.getResultList();		
+		q.setParameter("maxDate", version.getDate());
+		Long numberCommits = (Long) q.getSingleResult();
+		return numberCommits.intValue();
 	}
 	
-	public List<CommitFile> findByAuthorsFileToVersion(List<Contributor> authors, File file, Commit version) {
+	public int numberCommitsFileOthersAuthorsVersion(List<Contributor> authors, File file, Commit version) {
 		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
-		Query q = em.createQuery("select c from CommitFile c "
+		Query q = em.createQuery("select count(id) from CommitFile c where c.commit.author.id not in (:ids) "
+				+ "and c.file.id=:idFile and c.commit.date <=:maxDate");
+		q.setParameter("ids", ids);
+		q.setParameter("idFile", file.getId());
+		q.setParameter("maxDate", version.getDate());
+		Long numberCommits = (Long) q.getSingleResult();
+		return numberCommits.intValue(); 
+	}
+	
+	public int sumAddsByAuthorsFileToVersion(List<Contributor> authors, File file, Commit version) {
+		List<Long> ids = authors.stream().map(Contributor::getId).collect(Collectors.toList());
+		Query q = em.createQuery("select sum(c.adds) from CommitFile c "
 				+ "where c.commit.author.id in (:ids) and c.file.id=:idFile and c.commit.date<=:maxDate");
 		q.setParameter("ids", ids);
 		q.setParameter("idFile", file.getId());
 		q.setParameter("maxDate", version.getDate());
-		return q.getResultList();		
+		Long sumAdds = (Long) q.getSingleResult();
+		return sumAdds.intValue();		
 	}
 	
 	public List<CommitFile> findAll(){

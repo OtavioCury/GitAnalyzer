@@ -19,7 +19,18 @@ public class CommitDAO extends GenericDAO<Commit>{
 	public boolean exist(Commit entity) {
 		return false;
 	}
-	
+
+	public Commit findLastCommit() {
+		String hql = "select c from Commit c order by c.date desc";
+		Query q = em.createQuery(hql);
+		q.setMaxResults(1);
+		try {
+			return (Commit) q.getSingleResult();
+		} catch (javax.persistence.NoResultException e) {
+			return null;
+		}
+	}
+
 	public Commit findById(String id) {
 		String hql = "select c from Commit c where c.externalId=:id";
 		Query q = em.createQuery(hql);
@@ -30,13 +41,13 @@ public class CommitDAO extends GenericDAO<Commit>{
 			return null;
 		}
 	}
-	
+
 	public List<Commit> commitsDescDate() {
 		String hql = "select c from Commit c order by c.date desc";
 		Query q = em.createQuery(hql);
 		return q.getResultList();
 	}
-	
+
 	public boolean findByIdExists(String id) {
 		String hql = "select count(id) from Commit c where c.externalId=:id";
 		Query q = em.createQuery(hql);
@@ -44,7 +55,7 @@ public class CommitDAO extends GenericDAO<Commit>{
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;
 	}
-	
+
 	public Date findLastCommitByContributor(Contributor contributor) {
 		String hql = "select max(c.date) from Commit c where c.author.id=:idContributor or c.commiter.id=:idContributor";
 		Query q = em.createQuery(hql);
@@ -52,5 +63,5 @@ public class CommitDAO extends GenericDAO<Commit>{
 		Date date = (Date) q.getSingleResult(); 
 		return date;
 	}
-	
+
 }

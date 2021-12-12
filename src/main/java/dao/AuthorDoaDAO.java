@@ -6,32 +6,32 @@ import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 
-import model.AuthorDOE;
+import model.AuthorDOA;
 import model.AuthorFile;
 import model.Commit;
 import model.Contributor;
 import model.File;
 
-public class AuthorDoeDAO extends GenericDAO<AuthorDOE>{
+public class AuthorDoaDAO extends GenericDAO<AuthorDOA>{
 
 	@Override
-	public AuthorDOE find(Object id) {
+	public AuthorDOA find(Object id) {
 		return null;
 	}
 
 	@Override
-	public boolean exist(AuthorDOE entity) {
+	public boolean exist(AuthorDOA entity) {
 		return false;
 	}
-	
-	public Contributor maxDoeByFileVersion(File file, Commit version, Set<Contributor> contributors) {
+
+	public Contributor maxDoaByFileVersion(File file, Commit version, Set<Contributor> contributors) {
 		List<Long> ids = contributors.stream().map(Contributor::getId).collect(Collectors.toList());
-		String hql = "select a.authorFile.author from AuthorDOE a "
+		String hql = "select a.authorFile.author from AuthorDOA a "
 				+ "where a.authorFile.file.id=:idFile and a.version.id=:idVersion";
 		if(ids.size() > 0) {
 			hql = hql + " and a.authorFile.author.id not in (:ids)";
 		}
-		hql = hql + " order by a.degreeOfExpertise desc";
+		hql = hql + " order by a.degreeOfAuthorship desc";
 		Query q = em.createQuery(hql);
 		q.setParameter("idFile", file.getId());
 		q.setParameter("idVersion", version.getId());
@@ -41,21 +41,21 @@ public class AuthorDoeDAO extends GenericDAO<AuthorDOE>{
 		q.setMaxResults(1);
 		return (Contributor) q.getSingleResult();
 	} 
-	
-	public AuthorDOE findByAuthorVersion(AuthorFile authorFile, Commit version) {
-		String hql = "select a from AuthorDOE a where a.authorFile.id=:idAuthorFile and a.version.id=:idVersion";
+
+	public AuthorDOA findByAuthorVersion(AuthorFile authorFile, Commit version) {
+		String hql = "select a from AuthorDOA a where a.authorFile.id=:idAuthorFile and a.version.id=:idVersion";
 		Query q = em.createQuery(hql);
 		q.setParameter("idAuthorFile", authorFile.getId());
 		q.setParameter("idVersion", version.getId());
 		try {
-			return (AuthorDOE) q.getSingleResult();
+			return (AuthorDOA) q.getSingleResult();
 		} catch (javax.persistence.NoResultException e) {
 			return null;
 		}
 	}
-	
+
 	public boolean existsByAuthorVersion(AuthorFile authorFile, Commit version) {
-		String hql = "select count(id) from AuthorDOE a "
+		String hql = "select count(id) from AuthorDOA a "
 				+ "where a.authorFile.id=:idAuthorFile and a.version.id=:idVersion";
 		Query q = em.createQuery(hql);
 		q.setParameter("idAuthorFile", authorFile.getId());
@@ -63,9 +63,9 @@ public class AuthorDoeDAO extends GenericDAO<AuthorDOE>{
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;
 	}
-	
-	public List<AuthorDOE> findByFileVersion(File file, Commit version) {
-		String hql = "select a from AuthorDOE a where a.authorFile.file.id=:idFile and a.version.id=:idVersion";
+
+	public List<AuthorDOA> findByFileVersion(File file, Commit version) {
+		String hql = "select a from AuthorDOA a where a.authorFile.file.id=:idFile and a.version.id=:idVersion";
 		Query q = em.createQuery(hql);
 		q.setParameter("idFile", file.getId());
 		q.setParameter("idVersion", version.getId());

@@ -40,7 +40,9 @@ import utils.Constants;
 import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
-public class CommitAnalyzer extends AnalyzerGeneric{
+public class CommitAnalyzer {
+	
+	private Project project;
 
 	public CommitAnalyzer(Project project) {
 		super();

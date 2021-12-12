@@ -11,11 +11,22 @@ public class Constants {
 	public static List<String> invalidPaths = Arrays.asList(new String[]{"/dev/null"});
 	public static List<String> analyzedExtensions = Arrays.asList(new String[]{"jhm.xml", "java"});
 	
-	public static double intercept = 5.28223;
-	public static double addsCoef = 0.23173;
-	public static double faCoef = 0.36151;
-	public static double numDaysCoef = -0.19421;
-	public static double sizeCoef = -0.28761;
+	/**
+	 * DOE coefficients
+	 */
+	public static double interceptDoe = 5.28223;
+	public static double addsCoefDoe = 0.23173;
+	public static double faCoefDoe = 0.36151;
+	public static double numDaysCoefDoe = -0.19421;
+	public static double sizeCoefDoe = -0.28761;
+	
+	/**
+	 * DOA coefficients
+	 */
+	public static double interceptDoa = 3.293;
+	public static double faCoefDoa = 1.098;
+	public static double dlCoefDoa = 0.164;
+	public static double acCoefDoa = -0.321;
 	
 	public static final String ADD = new String("ADD");
 	public static final String MODIFY = new String("MODIFY");
@@ -28,6 +39,8 @@ public class Constants {
                           "tag"));
 	
 	public static double thresholdMantainer = 0.75;
+	
+	public static int quantKnowledgedDevsByFile = 3;
 	
 	public static Date analisysDate() {
 		Calendar calendar = Calendar.getInstance();

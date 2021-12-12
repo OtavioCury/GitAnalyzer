@@ -12,12 +12,14 @@ import model.Project;
 import utils.Constants;
 import utils.RepositoryAnalyzer;
 
-public class ContributorAnalyzer extends AnalyzerGeneric{
+public class ContributorAnalyzer {
 	
+	private Project project;
+
 	public ContributorAnalyzer(Project project) {
 		this.project = project;
 	}
-	
+
 	public void run() {
 		CommitDAO commitDAO = new CommitDAO();
 		ContributorDAO authorDao = new ContributorDAO();

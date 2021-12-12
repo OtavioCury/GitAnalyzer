@@ -8,7 +8,7 @@ import javax.persistence.ManyToOne;
 
 @Entity
 public class Contributor {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -16,14 +16,14 @@ public class Contributor {
 	private String email;
 	@ManyToOne
 	private Project project;
-	
+
 	public Contributor(String name, String email, Project project) {
 		super();
 		this.name = name;
 		this.email = email;
 		this.project = project;
 	}
-	
+
 	public Contributor() {
 	}
 

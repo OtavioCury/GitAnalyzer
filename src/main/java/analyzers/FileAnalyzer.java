@@ -16,7 +16,9 @@ import model.Project;
 import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
-public class FileAnalyzer extends AnalyzerGeneric{
+public class FileAnalyzer {
+	
+	private Project project;
 
 	public FileAnalyzer(Project project) {
 		super();

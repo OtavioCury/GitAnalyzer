@@ -13,7 +13,9 @@ import model.Project;
 import utils.ContributorsUtils;
 import utils.FileUtils;
 
-public class AuthorFileAnalyzer extends AnalyzerGeneric {
+public class AuthorFileAnalyzer {
+	
+	private Project project;
 	
 	public AuthorFileAnalyzer(Project project) {
 		super();
