@@ -7,7 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class FileCommit {
+public class FileVersion {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,16 +15,16 @@ public class FileCommit {
 	@ManyToOne
 	private File file;
 	@ManyToOne
-	private Commit commit;
+	private Commit version;
 	private int numberLines;
 	
-	public FileCommit(File file, Commit commit, int numberLines) {
+	public FileVersion(File file, Commit version, int numberLines) {
 		super();
 		this.file = file;
-		this.commit = commit;
+		this.version = version;
 		this.numberLines = numberLines;
 	}
-	public FileCommit() {
+	public FileVersion() {
 		super();
 	}
 	public File getFile() {
@@ -33,11 +33,11 @@ public class FileCommit {
 	public void setFile(File file) {
 		this.file = file;
 	}
-	public Commit getCommit() {
-		return commit;
+	public Commit getVersion() {
+		return version;
 	}
-	public void setCommit(Commit commit) {
-		this.commit = commit;
+	public void setVersion(Commit version) {
+		this.version = version;
 	}
 	public int getNumberLines() {
 		return numberLines;

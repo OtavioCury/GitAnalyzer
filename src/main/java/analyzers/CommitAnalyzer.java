@@ -21,6 +21,7 @@ import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
@@ -41,7 +42,7 @@ import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
 public class CommitAnalyzer {
-	
+
 	private Project project;
 
 	public CommitAnalyzer(Project project) {
@@ -55,7 +56,7 @@ public class CommitAnalyzer {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		FileDAO fileDAO = new FileDAO();
 		FileRenameDAO fileRenameDAO = new FileRenameDAO();
-		Iterable<RevCommit> commits = RepositoryAnalyzer.git.log().all().call();
+		Iterable<RevCommit> commits = RepositoryAnalyzer.git.log().setRevFilter(RevFilter.NO_MERGES).all().call();
 		List<RevCommit> commitsList = new ArrayList<RevCommit>();
 		commits.forEach(commitsList::add);
 		Date analisysDate = Constants.analisysDate();
@@ -100,80 +101,78 @@ public class CommitAnalyzer {
 								commitsList.get(i).getName(), parents);
 						commitDao.persist(commit);
 					}
-					if(commit.getParentsIds().size() <= 1) {
-						List<DiffEntry> diffsForTheCommit = diffsForTheCommit(RepositoryAnalyzer.repository, commitsList.get(i));
-						for (DiffEntry diff : diffsForTheCommit) {
-							String newPath = diff.getNewPath().toString();
-							String oldPath = diff.getOldPath().toString();
+					List<DiffEntry> diffsForTheCommit = diffsForTheCommit(RepositoryAnalyzer.repository, commitsList.get(i));
+					for (DiffEntry diff : diffsForTheCommit) {
+						String newPath = diff.getNewPath().toString();
+						String oldPath = diff.getOldPath().toString();
 
-							File newFile = fileDAO.findByPath(newPath, project);
-							if(Constants.invalidPaths.contains(newPath) == false) {
-								if(newFile == null) {
-									newFile = new model.File(newPath, project, FileUtils.returnFileExtension(newPath));
-									fileDAO.persist(newFile);
-								}
+						File newFile = fileDAO.findByPath(newPath, project);
+						if(Constants.invalidPaths.contains(newPath) == false) {
+							if(newFile == null) {
+								newFile = new model.File(newPath, project, FileUtils.returnFileExtension(newPath));
+								fileDAO.persist(newFile);
+							}
+						}
+
+						File oldFile = fileDAO.findByPath(oldPath, project);
+						if(Constants.invalidPaths.contains(oldPath) == false) {
+							if(oldFile == null) {
+								oldFile = new model.File(oldPath, project, FileUtils.returnFileExtension(oldPath));
+								fileDAO.persist(oldFile);
+							}
+						}
+
+						if(newPath.equals(oldPath) == false && newFile != null && oldFile != null) {
+							FileRename fileRename = new FileRename(oldFile, newFile, commit);
+							fileRenameDAO.persist(fileRename);
+						}
+
+						File file = null;
+						if(newFile != null) {
+							file = newFile;
+						}else {
+							file = oldFile;
+						}
+						CommitFile commitFile = commitFileDao.findByCommitFile(commit.getExternalId(), file.getPath());
+						if(commitFile == null) {
+							commitFile = new CommitFile();
+							if(diff.getChangeType().name().equals(Constants.ADD)){
+								commitFile.setOperation(enums.OperationType.ADD);
+							}else if(diff.getChangeType().name().equals(Constants.DELETE)){
+								commitFile.setOperation(enums.OperationType.DEL);
+							}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
+								commitFile.setOperation(enums.OperationType.MOD);
+							}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
+								commitFile.setOperation(enums.OperationType.REN);
+							}else{
+								continue;
 							}
 
-							File oldFile = fileDAO.findByPath(oldPath, project);
-							if(Constants.invalidPaths.contains(oldPath) == false) {
-								if(oldFile == null) {
-									oldFile = new model.File(oldPath, project, FileUtils.returnFileExtension(oldPath));
-									fileDAO.persist(oldFile);
-								}
+							commitFile.setFile(file);
+
+							ByteArrayOutputStream stream = new ByteArrayOutputStream();
+							DiffFormatter diffFormatter = new DiffFormatter( stream );
+							diffFormatter.setRepository(RepositoryAnalyzer.repository);
+							try {
+								diffFormatter.format(diff);
+							} catch (IOException e) {
+								e.printStackTrace();
 							}
 
-							if(newPath.equals(oldPath) == false && newFile != null && oldFile != null) {
-								FileRename fileRename = new FileRename(oldFile, newFile, commit);
-								fileRenameDAO.persist(fileRename);
+							String in = stream.toString();
+
+							Map<String, Integer> modifications = analyze(in);
+							commitFile.setAdds(modifications.get("adds"));
+							commitFile.setDels(modifications.get("dels"));
+							commitFile.setCommit(commit);
+							commitFileDao.persist(commitFile);
+
+							try {
+								diffFormatter.flush();
+							} catch (IOException e) {
+								e.printStackTrace();
 							}
-
-							File file = null;
-							if(newFile != null) {
-								file = newFile;
-							}else {
-								file = oldFile;
-							}
-							CommitFile commitFile = commitFileDao.findByCommitFile(commit.getExternalId(), file.getPath());
-							if(commitFile == null) {
-								commitFile = new CommitFile();
-								if(diff.getChangeType().name().equals(Constants.ADD)){
-									commitFile.setOperation(enums.OperationType.ADD);
-								}else if(diff.getChangeType().name().equals(Constants.DELETE)){
-									commitFile.setOperation(enums.OperationType.DEL);
-								}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
-									commitFile.setOperation(enums.OperationType.MOD);
-								}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
-									commitFile.setOperation(enums.OperationType.REN);
-								}else{
-									continue;
-								}
-
-								commitFile.setFile(file);
-
-								ByteArrayOutputStream stream = new ByteArrayOutputStream();
-								DiffFormatter diffFormatter = new DiffFormatter( stream );
-								diffFormatter.setRepository(RepositoryAnalyzer.repository);
-								try {
-									diffFormatter.format(diff);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-
-								String in = stream.toString();
-
-								Map<String, Integer> modifications = analyze(in);
-								commitFile.setAdds(modifications.get("adds"));
-								commitFile.setDels(modifications.get("dels"));
-								commitFile.setCommit(commit);
-								commitFileDao.persist(commitFile);
-
-								try {
-									diffFormatter.flush();
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								diffFormatter.close();
-							}
+							diffFormatter.close();
 						}
 					}
 				}

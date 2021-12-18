@@ -11,20 +11,19 @@ import org.eclipse.jgit.lib.PersonIdent;
 import dao.AuthorBlameDAO;
 import dao.AuthorFileDAO;
 import dao.CommitFileDAO;
-import dao.FileCommitDAO;
+import dao.FileVersionDAO;
 import model.AuthorBlame;
 import model.AuthorFile;
 import model.Commit;
 import model.Contributor;
 import model.File;
-import model.FileCommit;
+import model.FileVersion;
 import model.Project;
 import utils.ContributorsUtils;
-import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
 public class AuthorBlameAnalyzer {
-	
+
 	private Project project;
 
 	public AuthorBlameAnalyzer(Project project) {
@@ -36,8 +35,8 @@ public class AuthorBlameAnalyzer {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorBlameDAO authorBlameDao = new AuthorBlameDAO();
-		FileCommitDAO fileCommitDAO = new FileCommitDAO(); 
-		List<File> files = FileUtils.filesToBeAnalyzed(project);
+		FileVersionDAO FileVersionDAO = new FileVersionDAO(); 
+		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		List<Contributor> contributors = ContributorsUtils.activeContributors(project);
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		for (Contributor contributor : contributors) {
@@ -45,16 +44,16 @@ public class AuthorBlameAnalyzer {
 				if(commitFileDao.existsByAuthorFile(contributor, file) == true) {
 					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
 					if(authorBlameDao.existsByAuthorVersion(authorFile, currentCommit) == false
-							&& fileCommitDAO.existsByFileCommit(file, currentCommit)) {
+							&& FileVersionDAO.existsByFileVersion(file, currentCommit)) {
 						try {
-							FileCommit fileCommit = fileCommitDAO.findByFileCommit(file, currentCommit); 
+							FileVersion FileVersion = FileVersionDAO.findByFileVersion(file, currentCommit); 
 							AuthorBlame authorBlame = authorBlameDao.findByAuthorVersion(authorFile, currentCommit);
 							int blame = 0;
 							BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
 							blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
 							blameCommand.setFilePath(file.getPath());
 							BlameResult blameResult = blameCommand.call();
-							for (int i = 0; i < fileCommit.getNumberLines(); i++) {
+							for (int i = 0; i < FileVersion.getNumberLines(); i++) {
 								PersonIdent autor = blameResult.getSourceAuthor(i);
 								if (autor.getName().equals(contributor.getName())) {
 									blame++;

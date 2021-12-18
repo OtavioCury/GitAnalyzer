@@ -11,7 +11,7 @@ import model.Contributor;
 import model.File;
 import model.Project;
 import utils.ContributorsUtils;
-import utils.FileUtils;
+import utils.RepositoryAnalyzer;
 
 public class AuthorFileAnalyzer {
 	
@@ -26,7 +26,7 @@ public class AuthorFileAnalyzer {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		List<Contributor> contributors = ContributorsUtils.activeContributors(project);
-		List<File> files = FileUtils.filesToBeAnalyzed(project);
+		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
 				if(commitFileDao.existsByAuthorFile(contributor, file) == true) {

@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import dao.AuthorDoeDAO;
-import dao.FileCommitDAO;
+import dao.FileVersionDAO;
 import dto.ContributorDTO;
 import model.AuthorDOE;
 import model.Commit;
@@ -18,10 +18,10 @@ import model.File;
 import model.Project;
 
 public class DoeUtils extends MetricsUtils{
-	
+
 	private AuthorDoeDAO authorDoeDao = new AuthorDoeDAO();
-	private FileCommitDAO fileCommitDAO = new FileCommitDAO();
-	
+	private FileVersionDAO fileCommitDAO = new FileVersionDAO();
+
 	public DoeUtils(Commit currentCommit) {
 		super();
 		this.currentCommit = currentCommit;
@@ -35,14 +35,14 @@ public class DoeUtils extends MetricsUtils{
 		return Constants.interceptDoe + addsModel + faModel
 				+ numDaysModel + sizeModel;
 	}
-	
+
 	public double getContributorFileDOE(Contributor contributor, File file) {
 		return getDOE(getAdds(contributor, file), getFA(contributor, file),
 				getNumDays(contributor, file), getFileSize(file));	
 	}
 
 	private int getFileSize(File file) {
-		return fileCommitDAO.numberLinesFileCommit(file, currentCommit);
+		return fileCommitDAO.numberLinesFileVersion(file, currentCommit);
 	}
 
 	private int getAdds(Contributor contributor, File file) {
@@ -61,7 +61,7 @@ public class DoeUtils extends MetricsUtils{
 		int diffDays = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 		return diffDays;
 	}
-	
+
 	public List<Contributor> getMantainersByFile(File file, double threshold){
 		List<Contributor> mantainers = new ArrayList<Contributor>();
 		List<AuthorDOE> does = authorDoeDao.findByFileVersion(file, currentCommit);
@@ -74,7 +74,7 @@ public class DoeUtils extends MetricsUtils{
 		}
 		return mantainers;
 	}
-	
+
 	public List<ContributorDTO> getMostKnowledgedByFile(String filePath, String projectName){
 		Project project = projectDAO.findByName(projectName);
 		File file = fileDAO.findByPath(filePath, project);
@@ -88,5 +88,5 @@ public class DoeUtils extends MetricsUtils{
 		}
 		return contributors;
 	}
-	
+
 }

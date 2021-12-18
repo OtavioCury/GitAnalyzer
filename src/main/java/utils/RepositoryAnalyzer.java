@@ -19,27 +19,7 @@ public class RepositoryAnalyzer {
 	public static Git git;
 	public static Repository repository;
 	public static HashMap<String, List<DiffEntry>> diffsCommits;
-
-	//	public static Commit getCurrentCommit() {
-	//		CommitDAO commitDao = new CommitDAO();
-	//		try {
-	//			Iterable<RevCommit> commits = RepositoryAnalyzer.git.log().all().call();
-	//			List<RevCommit> commitsList = new ArrayList<RevCommit>();
-	//			commits.forEach(commitsList::add);
-	//			RevCommit maxDateCommit = commitsList.get(0);
-	//			for(RevCommit commit: commitsList) {
-	//				if(commit.getAuthorIdent().getWhen().after(maxDateCommit.getAuthorIdent().getWhen())) {
-	//					maxDateCommit = commit;
-	//				}
-	//			}
-	//			String latestCommitHash = maxDateCommit.getName();
-	//			Commit commit = commitDao.findById(latestCommitHash);
-	//			return commit;
-	//		} catch (GitAPIException | IOException e) {
-	//			e.printStackTrace();
-	//			return null;
-	//		}
-	//	}
+	private static List<model.File> analyzedFiles;
 
 	public static Commit getCurrentCommit() {
 		CommitDAO commitDao = new CommitDAO();
@@ -59,6 +39,17 @@ public class RepositoryAnalyzer {
 	
 	public static void closeRepository() {
 		RepositoryAnalyzer.git.close();
+	}
+
+	public static List<model.File> getAnalyzedFiles(Project project) {
+		if(analyzedFiles == null) {
+			setAnalyzedFiles(FileUtils.filesToBeAnalyzed(project));
+		}
+		return analyzedFiles;
+	}
+
+	public static void setAnalyzedFiles(List<model.File> analyzedFiles) {
+		RepositoryAnalyzer.analyzedFiles = analyzedFiles;
 	}
 
 }
