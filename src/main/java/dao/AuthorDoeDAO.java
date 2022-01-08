@@ -23,25 +23,26 @@ public class AuthorDoeDAO extends GenericDAO<AuthorDOE>{
 	public boolean exist(AuthorDOE entity) {
 		return false;
 	}
-	
-	public Contributor maxDoeByFileVersion(File file, Commit version, Set<Contributor> contributors) {
-		List<Long> ids = contributors.stream().map(Contributor::getId).collect(Collectors.toList());
+
+	public Contributor maxDoeByFileVersion(Set<File> files, Commit version, Set<Contributor> contributors) {
+		List<Long> idsContributors = contributors.stream().map(Contributor::getId).collect(Collectors.toList());
+		List<Long> idsFiles = files.stream().map(File::getId).collect(Collectors.toList());
 		String hql = "select a.authorFile.author from AuthorDOE a "
-				+ "where a.authorFile.file.id=:idFile and a.version.id=:idVersion";
-		if(ids.size() > 0) {
+				+ "where a.authorFile.file.id in (:idsFiles) and a.version.id=:idVersion";
+		if(idsContributors.size() > 0) {
 			hql = hql + " and a.authorFile.author.id not in (:ids)";
 		}
 		hql = hql + " order by a.degreeOfExpertise desc";
 		Query q = em.createQuery(hql);
-		q.setParameter("idFile", file.getId());
+		q.setParameter("idsFiles", idsFiles);
 		q.setParameter("idVersion", version.getId());
-		if(ids.size() > 0) {
-			q.setParameter("ids", ids);
+		if(idsContributors.size() > 0) {
+			q.setParameter("ids", idsContributors);
 		}
 		q.setMaxResults(1);
 		return (Contributor) q.getSingleResult();
 	} 
-	
+
 	public AuthorDOE findByAuthorVersion(AuthorFile authorFile, Commit version) {
 		String hql = "select a from AuthorDOE a where a.authorFile.id=:idAuthorFile and a.version.id=:idVersion";
 		Query q = em.createQuery(hql);
@@ -53,7 +54,7 @@ public class AuthorDoeDAO extends GenericDAO<AuthorDOE>{
 			return null;
 		}
 	}
-	
+
 	public boolean existsByAuthorVersion(AuthorFile authorFile, Commit version) {
 		String hql = "select count(id) from AuthorDOE a "
 				+ "where a.authorFile.id=:idAuthorFile and a.version.id=:idVersion";
@@ -63,7 +64,7 @@ public class AuthorDoeDAO extends GenericDAO<AuthorDOE>{
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;
 	}
-	
+
 	public List<AuthorDOE> findByFileVersion(File file, Commit version) {
 		String hql = "select a from AuthorDOE a where a.authorFile.file.id=:idFile and a.version.id=:idVersion";
 		Query q = em.createQuery(hql);

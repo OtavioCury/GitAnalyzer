@@ -21,7 +21,7 @@ import utils.RepositoryAnalyzer;
 public class ExpertsService {
 	
 	@GET
-	public HashMap<String, List<ContributorDTO>> getExperts(@QueryParam("projectName") String projectName, 
+	public HashMap<String, List<ContributorDTO>> getExpertsDoeDoa(@QueryParam("projectName") String projectName, 
 			@QueryParam("filePath") String filePath) {
 		HashMap<String, List<ContributorDTO>> map = new HashMap<String, List<ContributorDTO>>(); 
 		Commit commit = RepositoryAnalyzer.getCurrentCommit();

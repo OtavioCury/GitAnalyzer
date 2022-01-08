@@ -8,7 +8,7 @@ import javax.persistence.ManyToOne;
 
 @Entity
 public class ContributorVersion {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -17,17 +17,17 @@ public class ContributorVersion {
 	@ManyToOne
 	private Commit version;
 	private boolean disabled;
-	
+
 	public ContributorVersion(Contributor contributor, Commit version) {
 		super();
 		this.contributor = contributor;
 		this.version = version;
 	}
-	
+
 	public ContributorVersion() {
 		super();
 	}
-	
+
 	public Long getId() {
 		return id;
 	}

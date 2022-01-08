@@ -24,19 +24,20 @@ public class AuthorDoaDAO extends GenericDAO<AuthorDOA>{
 		return false;
 	}
 
-	public Contributor maxDoaByFileVersion(File file, Commit version, Set<Contributor> contributors) {
-		List<Long> ids = contributors.stream().map(Contributor::getId).collect(Collectors.toList());
+	public Contributor maxDoaByFileVersion(Set<File> files, Commit version, Set<Contributor> contributors) {
+		List<Long> idsContributors = contributors.stream().map(Contributor::getId).collect(Collectors.toList());
+		List<Long> idsFiles = files.stream().map(File::getId).collect(Collectors.toList());
 		String hql = "select a.authorFile.author from AuthorDOA a "
-				+ "where a.authorFile.file.id=:idFile and a.version.id=:idVersion";
-		if(ids.size() > 0) {
-			hql = hql + " and a.authorFile.author.id not in (:ids)";
+				+ "where a.authorFile.file.id in (:idsFiles) and a.version.id=:idVersion";
+		if(idsContributors.size() > 0) {
+			hql = hql + " and a.authorFile.author.id not in (:idsContributors)";
 		}
 		hql = hql + " order by a.degreeOfAuthorship desc";
 		Query q = em.createQuery(hql);
-		q.setParameter("idFile", file.getId());
+		q.setParameter("idsFiles", idsFiles);
 		q.setParameter("idVersion", version.getId());
-		if(ids.size() > 0) {
-			q.setParameter("ids", ids);
+		if(idsContributors.size() > 0) {
+			q.setParameter("idsContributors", idsContributors);
 		}
 		q.setMaxResults(1);
 		return (Contributor) q.getSingleResult();

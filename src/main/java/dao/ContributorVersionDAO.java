@@ -1,5 +1,8 @@
 package dao;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.Query;
 
 import model.Commit;
@@ -36,6 +39,24 @@ public class ContributorVersionDAO extends GenericDAO<ContributorVersion>{
 		q.setParameter("idVersion", version.getId());
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;
+	}
+	
+	public List<ContributorVersion> activeContributorVersion(Commit version) {
+		List<ContributorVersion> contributors = new ArrayList<ContributorVersion>();
+		String hql = "select cv from ContributorVersion cv where cv.version.id=:idVersion and cv.disabled=false";
+		Query q = em.createQuery(hql);
+		q.setParameter("idVersion", version.getId());
+		contributors = q.getResultList();
+		return contributors;
+	}
+	
+	public List<ContributorVersion> findByVersion(Commit version) {
+		List<ContributorVersion> contributors = new ArrayList<ContributorVersion>();
+		String hql = "select cv from ContributorVersion cv where cv.version.id=:idVersion";
+		Query q = em.createQuery(hql);
+		q.setParameter("idVersion", version.getId());
+		contributors = q.getResultList();
+		return contributors;
 	}
 
 }

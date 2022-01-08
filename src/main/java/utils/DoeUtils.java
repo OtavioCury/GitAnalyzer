@@ -46,16 +46,18 @@ public class DoeUtils extends MetricsUtils{
 	}
 
 	private int getAdds(Contributor contributor, File file) {
-		List<Contributor> contributors = findAlias.getAlias(contributor);
+		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
 		contributors.add(contributor);
-		int adds = commitFileDao.sumAddsByAuthorsFileToVersion(contributors, file, currentCommit);
+		Set<File> files = getFilesRenames(file);
+		int adds = commitFileDao.sumAddsByAuthorsFileToVersion(contributors, files, currentCommit);
 		return adds;
 	}
 
 	private int getNumDays(Contributor contributor, File file) {
-		List<Contributor> contributors = findAlias.getAlias(contributor);
+		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
 		contributors.add(contributor);
-		Date dateLastCommit = commitFileDao.findLastByAuthorsFileToVersion(contributors, file, currentCommit);
+		Set<File> files = getFilesRenames(file);
+		Date dateLastCommit = commitFileDao.findLastByAuthorsFileToVersion(contributors, files, currentCommit);
 		Date currentDate = new Date();
 		long diff = currentDate.getTime() - dateLastCommit.getTime();
 		int diffDays = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
@@ -65,11 +67,13 @@ public class DoeUtils extends MetricsUtils{
 	public List<Contributor> getMantainersByFile(File file, double threshold){
 		List<Contributor> mantainers = new ArrayList<Contributor>();
 		List<AuthorDOE> does = authorDoeDao.findByFileVersion(file, currentCommit);
-		AuthorDOE maxDoe = does.stream().max(Comparator.comparing(AuthorDOE::getDegreeOfExpertise)).get();
-		for(AuthorDOE doe: does) {
-			double normalizedDoe = doe.getDegreeOfExpertise()/maxDoe.getDegreeOfExpertise();
-			if(normalizedDoe > threshold) {
-				mantainers.add(doe.getAuthorFile().getAuthor());
+		if(does != null && does.size() > 0) {
+			AuthorDOE maxDoe = does.stream().max(Comparator.comparing(AuthorDOE::getDegreeOfExpertise)).get();
+			for(AuthorDOE doe: does) {
+				double normalizedDoe = doe.getDegreeOfExpertise()/maxDoe.getDegreeOfExpertise();
+				if(normalizedDoe > threshold) {
+					mantainers.add(doe.getAuthorFile().getAuthor());
+				}
 			}
 		}
 		return mantainers;
@@ -78,13 +82,14 @@ public class DoeUtils extends MetricsUtils{
 	public List<ContributorDTO> getMostKnowledgedByFile(String filePath, String projectName){
 		Project project = projectDAO.findByName(projectName);
 		File file = fileDAO.findByPath(filePath, project);
+		Set<File> files = getFilesRenames(file);
 		List<ContributorDTO> contributors = new ArrayList<ContributorDTO>();
 		Set<Contributor> contributorsAndAlias = new HashSet<Contributor>();
 		while(contributors.size() < Constants.quantKnowledgedDevsByFile) {
-			Contributor contributor = authorDoeDao.maxDoeByFileVersion(file, currentCommit, contributorsAndAlias);
+			Contributor contributor = authorDoeDao.maxDoeByFileVersion(files, currentCommit, contributorsAndAlias);
 			contributors.add(new ContributorDTO(contributor.getName(), contributor.getEmail()));
 			contributorsAndAlias.add(contributor);
-			contributorsAndAlias.addAll(findAlias.getAlias(contributor));
+			contributorsAndAlias.addAll(contributorsUtils.getAlias(contributor));
 		}
 		return contributors;
 	}

@@ -1,6 +1,9 @@
 package dao;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 
@@ -37,6 +40,15 @@ public class FileRenameDAO extends GenericDAO<FileRename>{
 		}else {
 			return false;
 		}
+	}
+	
+	public List<File> findByFile(Set<File> files, Commit commit) {
+		List<Long> idFiles = files.stream().map(File::getId).collect(Collectors.toList());
+		String hql = "select fr.oldFile from FileRename fr where fr.newFile.id in (:idFiles) and fr.commitChange.date<=:maxDate";
+		Query q = em.createQuery(hql);
+		q.setParameter("idFiles", idFiles);
+		q.setParameter("maxDate", commit.getDate());
+		return q.getResultList();
 	}
 
 }

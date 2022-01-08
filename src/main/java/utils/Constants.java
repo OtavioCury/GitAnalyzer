@@ -9,7 +9,7 @@ import java.util.List;
 public class Constants {
 	
 	public static List<String> invalidPaths = Arrays.asList(new String[]{"/dev/null"});
-	public static List<String> analyzedExtensions = Arrays.asList(new String[]{"jhm.xml", "java", "jsp", "tag"});
+	public static List<String> analyzedExtensions = Arrays.asList(new String[]{"jhm.xml", "java", "jsp", "tag", "jrxml"});
 	
 	/**
 	 * DOE coefficients
