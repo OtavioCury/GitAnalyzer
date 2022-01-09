@@ -35,9 +35,10 @@ public class AuthorBlameAnalyzer {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorBlameDAO authorBlameDao = new AuthorBlameDAO();
-		FileVersionDAO FileVersionDAO = new FileVersionDAO(); 
+		FileVersionDAO FileVersionDAO = new FileVersionDAO();
+		ContributorsUtils contributorsUtils = new ContributorsUtils();
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
-		List<Contributor> contributors = ContributorsUtils.activeContributors(project);
+		List<Contributor> contributors = contributorsUtils.activeContributors(project);
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {

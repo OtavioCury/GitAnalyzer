@@ -37,7 +37,7 @@ public class ContributorsUtils {
 		return alias;
 	}
 
-	public static List<Contributor> activeContributors(Project project){
+	public List<Contributor> activeContributors(Project project){
 		ContributorDAO contributorDAO = new ContributorDAO();
 		ContributorVersionDAO contributorVesionDAO = new ContributorVersionDAO();
 		List<Contributor> contributors = contributorDAO.findByProject(project);
@@ -50,5 +50,23 @@ public class ContributorsUtils {
 		}
 		contributors.removeAll(contributorsExcluded);
 		return contributors;
+	}
+
+	public void removeAlias(List<Contributor> contributors){
+		List<Contributor> removed = new ArrayList<Contributor>();
+		for(Contributor contributor: contributors) {
+			if(removed.contains(contributor) == false) {
+				List<Contributor> aliases = getAlias(contributor);
+				for(Contributor alias: aliases) {
+					for(Contributor contributorAux: contributors) {
+						if(contributorAux.getId().equals(contributor.getId()) == false
+								&& alias.getId().equals(contributorAux.getId())) {
+							removed.add(contributorAux);
+						}
+					}
+				}
+			}
+		}
+		contributors.removeAll(removed);
 	}
 }

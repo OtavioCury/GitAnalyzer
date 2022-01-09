@@ -32,7 +32,8 @@ public class AuthorDoaAnalyzer {
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorDoaDAO authorDoaDAO = new AuthorDoaDAO();
 		FileVersionDAO FileVersionDAO = new FileVersionDAO();
-		List<Contributor> contributors = ContributorsUtils.activeContributors(project);
+		ContributorsUtils contributorsUtils = new ContributorsUtils();
+		List<Contributor> contributors = contributorsUtils.activeContributors(project);
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		DoaUtils modelDOA = new DoaUtils(currentCommit);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);

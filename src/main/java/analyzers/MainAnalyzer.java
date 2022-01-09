@@ -18,11 +18,11 @@ public class MainAnalyzer {
 		ProjectDAO projectDao = new ProjectDAO();
 		Project project = projectDao.findByName(projectName);
 		RepositoryAnalyzer.initRepository(projectName);
-		//		analyzeCommits(project);
-		//		analyzeContributors(project);
-		//		analyzeFiles(project);
-		//		analyzeAuthorFile(project);
-		analyzeDoe(project);
+//		analyzeCommits(project);
+//		analyzeContributors(project);
+//		analyzeFiles(project);
+//		analyzeAuthorFile(project);
+//		analyzeDoe(project);
 		analyzeDoa(project);
 		System.out.println("================ End of Analysis ===========");
 		RepositoryAnalyzer.git.close();

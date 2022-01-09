@@ -14,18 +14,19 @@ import utils.ContributorsUtils;
 import utils.RepositoryAnalyzer;
 
 public class AuthorFileAnalyzer {
-	
+
 	private Project project;
-	
+
 	public AuthorFileAnalyzer(Project project) {
 		super();
 		this.project = project;
 	}
-	
+
 	public void runFirstAuthorAnalysis() throws GitAPIException {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
-		List<Contributor> contributors = ContributorsUtils.activeContributors(project);
+		ContributorsUtils contributorsUtils = new ContributorsUtils();
+		List<Contributor> contributors = contributorsUtils.activeContributors(project);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
