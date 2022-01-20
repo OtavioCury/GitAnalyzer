@@ -60,8 +60,10 @@ public class CommitAnalyzer {
 		List<RevCommit> commitsList = new ArrayList<RevCommit>();
 		commits.forEach(commitsList::add);
 		Date analisysDate = Constants.analisysDate();
+		List<String> invalidsCommits = project.getProjectConstants().getInvalidCommits();
 		for (int i = 0; i < commitsList.size(); i++) {//analyze each commit
-			if(commitDao.findByIdExists(commitsList.get(i).getName()) == false) {
+			if(commitDao.findByIdExists(commitsList.get(i).getName()) == false
+					&& invalidsCommits.contains(commitsList.get(i).getName()) == false) {
 				if(commitsList.get(i).getAuthorIdent().getWhen().after(analisysDate)) {
 					String authorName = null, authorEmail = null;
 					if (commitsList.get(i).getAuthorIdent() != null) {

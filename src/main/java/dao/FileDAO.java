@@ -1,5 +1,6 @@
 package dao;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.persistence.Query;
@@ -44,6 +45,22 @@ public class FileDAO extends GenericDAO<File>{
 		q.setParameter("idProject", project.getId());
 		q.setParameter("extensions", extensions);
 		return q.getResultList();
+	}
+	
+	public LinkedHashMap<File, Long> findOrderedMostCommited(Project project, List<String> extensions){
+		LinkedHashMap<File, Long> fileCommits = new LinkedHashMap<File, Long>();
+		String hql = "select count(*) as count_file, cf.file.path from CommitFile cf where cf.file.extension in (:extensions) "
+				+ "and cf.file.project.id=:idProject group by cf.file.path order by count_file desc";
+		Query q = em.createQuery(hql);
+		q.setParameter("idProject", project.getId());
+		q.setParameter("extensions", extensions);
+		List<Object[]> objects = q.getResultList();
+		for(Object[] object: objects) {
+			Long numberCommits = (Long) object[0];
+			File file = findByPath((String) object[1], project);
+			fileCommits.put(file, numberCommits);
+		}
+		return fileCommits;
 	}
 	
 }

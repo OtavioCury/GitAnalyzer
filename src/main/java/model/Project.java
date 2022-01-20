@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 @Entity
 public class Project {
@@ -15,6 +16,8 @@ public class Project {
 	@Column(unique=true)
 	private String name;
 	private String currentPath;
+	@OneToOne
+	private ProjectConstants projectConstants;
 	
 	public Project(String name, String currentPath) {
 		super();
@@ -48,6 +51,14 @@ public class Project {
 
 	public void setCurrentPath(String currentPath) {
 		this.currentPath = currentPath;
-	}	
+	}
+
+	public ProjectConstants getProjectConstants() {
+		return projectConstants;
+	}
+
+	public void setProjectConstants(ProjectConstants projectConstants) {
+		this.projectConstants = projectConstants;
+	}
 
 }

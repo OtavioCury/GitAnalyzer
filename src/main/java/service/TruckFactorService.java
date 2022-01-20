@@ -1,5 +1,6 @@
 package service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -39,11 +40,12 @@ public class TruckFactorService {
 		ContributorsUtils contributorsUtils = new ContributorsUtils();
 		List<Contributor> contributors = contributorsUtils.activeContributors(project);
 		contributorsUtils.removeAlias(contributors);
+		List<Contributor> removedContributors = new ArrayList<Contributor>();
 		while(contributors.isEmpty() == false) {
 			double covarage = getCoverageDOA(contributors, files);
 			if(covarage < 0.5) 
 				break;
-			removeTopAuthor(contributors, files);
+			removedContributors.add(removeTopAuthor(contributors, files));
 			tf = tf+1;
 		}
 		RepositoryAnalyzer.git.close();
@@ -60,18 +62,19 @@ public class TruckFactorService {
 		ContributorsUtils contributorsUtils = new ContributorsUtils();
 		List<Contributor> contributors = contributorsUtils.activeContributors(project);
 		contributorsUtils.removeAlias(contributors);
+		List<Contributor> removedContributors = new ArrayList<Contributor>();
 		while(contributors.isEmpty() == false) {
 			double covarage = getCoverageDOE(contributors, files);
 			if(covarage < 0.5) 
 				break;
-			removeTopAuthor(contributors, files);
+			removedContributors.add(removeTopAuthor(contributors, files));
 			tf = tf+1;
 		}
 		RepositoryAnalyzer.git.close();
 		return tf;
 	}
 
-	private void removeTopAuthor(List<Contributor> contributors, List<File> files) {
+	private Contributor removeTopAuthor(List<Contributor> contributors, List<File> files) {
 		int top = 0;
 		Contributor topAuthor = null;
 		Commit commit = RepositoryAnalyzer.getCurrentCommit();
@@ -104,6 +107,7 @@ public class TruckFactorService {
 			}
 		}
 		contributors.remove(topAuthor);
+		return topAuthor;
 	}
 
 	private double getCoverageDOA(List<Contributor> contributors, List<File> files) {
@@ -142,7 +146,8 @@ public class TruckFactorService {
 				}
 			}
 		}
-		return numberFilesCovarage/fileSize; 
+		double coverage = (double)numberFilesCovarage/(double)fileSize;
+		return coverage; 
 	}
 
 	private Project getProjectByName(String projectName) {
