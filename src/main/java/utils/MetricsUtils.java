@@ -37,14 +37,14 @@ public class MetricsUtils {
 		files.add(file);
 		boolean flag = false;
 		while(flag == false) {
-			List<File> filesRename = fileRenameDAO.findByFile(files, currentCommit);
-			filesRename.add(file);
 			List<File> newFiles = new ArrayList<File>();
+			List<File> filesRename = fileRenameDAO.findByFile(files, currentCommit);
 			for(File fileRename: filesRename) {
 				boolean present = false;
-				for(File fileSet: files) {
+				innerFor:for(File fileSet: files) {
 					if(fileRename.getId().equals(fileSet.getId())) {
 						present = true;
+						break innerFor;
 					}
 				}
 				if(present == false) {

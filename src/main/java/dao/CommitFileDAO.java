@@ -24,6 +24,21 @@ public class CommitFileDAO extends GenericDAO<CommitFile>{
 	public boolean exist(CommitFile entity) {
 		return false;
 	}
+	
+	public List<Long> numberOfFileUpToCommit(Commit commit){
+		String hql = "select count(*) as number_files from CommitFile cf where cf.commit.date <=:commitDate "
+				+ "group by cf.commit.id order by number_files";
+		Query q = em.createQuery(hql);
+		q.setParameter("commitDate", commit.getDate());
+		return q.getResultList();
+	}
+	
+	public List<CommitFile> findByCommit(Commit commit){
+		String hql = "select c from CommitFile c where c.commit.id=:commitId";
+		Query q = em.createQuery(hql);
+		q.setParameter("commitId", commit.getId());
+		return q.getResultList();
+	}
 
 	public CommitFile findByCommitFile(String id, String path) {
 		String hql = "select c from CommitFile c where "

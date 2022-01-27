@@ -1,4 +1,4 @@
-package analyzers;
+package extractors;
 
 import java.util.List;
 
@@ -22,11 +22,11 @@ import model.Project;
 import utils.ContributorsUtils;
 import utils.RepositoryAnalyzer;
 
-public class AuthorBlameAnalyzer {
+public class AuthorBlameExtractor {
 
 	private Project project;
 
-	public AuthorBlameAnalyzer(Project project) {
+	public AuthorBlameExtractor(Project project) {
 		super();
 		this.project = project;
 	}

@@ -47,6 +47,13 @@ public class CommitDAO extends GenericDAO<Commit>{
 		Query q = em.createQuery(hql);
 		return q.getResultList();
 	}
+	
+	public List<Commit> commitsByAuthor(Contributor contributor){
+		String hql = "select c from Commit c where c.author.id=:authorId";
+		Query q = em.createQuery(hql);
+		q.setParameter("authorId", contributor.getId());
+		return q.getResultList();
+	}
 
 	public boolean findByIdExists(String id) {
 		String hql = "select count(id) from Commit c where c.externalId=:id";

@@ -1,4 +1,4 @@
-package analyzers;
+package extractors;
 
 import java.io.IOException;
 
@@ -9,27 +9,27 @@ import dao.ProjectDAO;
 import model.Project;
 import utils.RepositoryAnalyzer;
 
-public class MainAnalyzer {
+public class MainExtractor {
 
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
-		ProjectInitializer.init(args[0]);
-		String projectName = ProjectInitializer.extractProjectName(args[0]);
+		ProjectExtractor.init(args[0]);
+		String projectName = ProjectExtractor.extractProjectName(args[0]);
 		System.out.println("================ Analyzing "+projectName+"============");
 		ProjectDAO projectDao = new ProjectDAO();
 		Project project = projectDao.findByName(projectName);
 		RepositoryAnalyzer.initRepository(projectName);
-		analyzeCommits(project);
-		analyzeContributors(project);
-		analyzeFiles(project);
-		analyzeAuthorFile(project);
-		analyzeDoe(project);
-		analyzeDoa(project);
+		extractCommits(project);
+		extractContributors(project);
+		extractFiles(project);
+		extractAuthorFile(project);
+		extractDoe(project);
+		extractDoa(project);
 		System.out.println("================ End of Analysis ===========");
 		RepositoryAnalyzer.git.close();
 	}
 
-	private static void analyzeDoa(Project project) {
-		AuthorDoaAnalyzer authorDoaAnalyzer = new AuthorDoaAnalyzer(project);
+	private static void extractDoa(Project project) {
+		AuthorDoaExtractor authorDoaAnalyzer = new AuthorDoaExtractor(project);
 		try {
 			authorDoaAnalyzer.runDOAAnalysis();
 		} catch (GitAPIException e) {
@@ -37,8 +37,8 @@ public class MainAnalyzer {
 		}		
 	}
 
-	private static void analyzeDoe(Project project) {
-		AuthorDoeAnalyzer authorDoeAnalyzer = new AuthorDoeAnalyzer(project);
+	private static void extractDoe(Project project) {
+		AuthorDoeExtractor authorDoeAnalyzer = new AuthorDoeExtractor(project);
 		try {
 			authorDoeAnalyzer.runDOEAnalysis();
 		} catch (GitAPIException e) {
@@ -46,8 +46,8 @@ public class MainAnalyzer {
 		}
 	}
 
-	private static void analyzeAuthorFile(Project project) {
-		AuthorFileAnalyzer authorFileAnalyzer = new AuthorFileAnalyzer(project);
+	private static void extractAuthorFile(Project project) {
+		AuthorFileExtractor authorFileAnalyzer = new AuthorFileExtractor(project);
 		try {
 			authorFileAnalyzer.runFirstAuthorAnalysis();
 		} catch (GitAPIException e1) {
@@ -55,13 +55,13 @@ public class MainAnalyzer {
 		}		
 	}
 
-	private static void analyzeContributors(Project project) {
-		ContributorAnalyzer contributorAnalyzer = new ContributorAnalyzer();
+	private static void extractContributors(Project project) {
+		ContributorExtractor contributorAnalyzer = new ContributorExtractor();
 		contributorAnalyzer.run();
 	}
 
-	private static void analyzeCommits(Project project) {
-		CommitAnalyzer commitAnalyzer = new CommitAnalyzer(project);
+	private static void extractCommits(Project project) {
+		CommitExtractor commitAnalyzer = new CommitExtractor(project);
 		try {
 			commitAnalyzer.run();
 		} catch (GitAPIException | IOException e) {
@@ -69,8 +69,8 @@ public class MainAnalyzer {
 		}
 	}
 
-	private static void analyzeFiles(Project project) {
-		FileAnalyzer fileAnalyzer = new FileAnalyzer(project);
+	private static void extractFiles(Project project) {
+		FileExtractor fileAnalyzer = new FileExtractor(project);
 		fileAnalyzer.run();
 	}
 

@@ -1,4 +1,4 @@
-package analyzers;
+package extractors;
 
 import java.io.File;
 import java.util.Arrays;
@@ -8,7 +8,7 @@ import dao.ProjectDAO;
 import model.Project;
 import model.ProjectConstants;
 
-public class ProjectInitializer {
+public class ProjectExtractor {
 
 	public static void init(String projectPath) {
 		String projectName = extractProjectName(projectPath);
@@ -22,7 +22,7 @@ public class ProjectInitializer {
 			if(projectName.trim().toUpperCase().equals("IHEALTH")) {
 				projectConstants = new ProjectConstants(project, 
 						Arrays.asList(new String[]{"jhm.xml", "java", "jsp", "tag", "jrxml"}), 
-						Arrays.asList(new String[]{"ad7a3b429dbf7cbcc79ad6efe8789bfd8dbb216e"}));
+						Arrays.asList(new String[]{"ad7a3b429dbf7cbcc79ad6efe8789bfd8dbb216e"}), null);
 				projectConstantsDao.persist(projectConstants);
 			}
 			project.setProjectConstants(projectConstants);

@@ -1,4 +1,4 @@
-package analyzers;
+package extractors;
 
 import java.util.List;
 
@@ -13,11 +13,11 @@ import model.Project;
 import utils.ContributorsUtils;
 import utils.RepositoryAnalyzer;
 
-public class AuthorFileAnalyzer {
+public class AuthorFileExtractor {
 
 	private Project project;
 
-	public AuthorFileAnalyzer(Project project) {
+	public AuthorFileExtractor(Project project) {
 		super();
 		this.project = project;
 	}

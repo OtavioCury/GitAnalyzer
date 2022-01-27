@@ -46,7 +46,7 @@ public class Constants {
 		Date referenceDate = new Date();
 		Calendar c = Calendar.getInstance(); 
 		c.setTime(referenceDate); 
-		c.add(Calendar.MONTH, -5);
+		c.add(Calendar.MONTH, -4);
 		return c.getTime();
 	}
 }

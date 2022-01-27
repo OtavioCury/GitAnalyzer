@@ -1,4 +1,4 @@
-package analyzers;
+package extractors;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -41,11 +41,11 @@ import utils.Constants;
 import utils.FileUtils;
 import utils.RepositoryAnalyzer;
 
-public class CommitAnalyzer {
+public class CommitExtractor {
 
 	private Project project;
 
-	public CommitAnalyzer(Project project) {
+	public CommitExtractor(Project project) {
 		super();
 		this.project = project;
 	}

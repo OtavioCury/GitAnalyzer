@@ -35,8 +35,8 @@
 				value="org.hibernate.dialect.PostgreSQLDialect" /> <!-- DB Dialect -->
 			<property name="hibernate.hbm2ddl.auto" value="update" /> <!-- create / create-drop / update -->
 
-			<property name="hibernate.show_sql" value="true" /> 
-			<property name="hibernate.format_sql" value="true" /> 
+<!-- 			<property name="hibernate.show_sql" value="true" />  -->
+<!-- 			<property name="hibernate.format_sql" value="true" />  -->
 		</properties>
 
 	</persistence-unit>
