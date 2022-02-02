@@ -44,7 +44,7 @@ public class TruckFactorAnalyzer {
 		List<Contributor> removedContributors = new ArrayList<Contributor>();
 		double sumFileValue = FileUtils.sumValueFilesCommit(project, files);
 		double halfSumFileValue = sumFileValue/2;
-		LinkedHashMap<File, Double> fileValue = FileUtils.filesValues(project, files);
+		LinkedHashMap<File, Double> fileValue = FileUtils.filesCommitValues(project, files);
 		while(contributors.isEmpty() == false) {
 			double covarage = getCoverageDOAFileValue(contributors, fileValue, sumFileValue);
 			if(covarage < halfSumFileValue) 

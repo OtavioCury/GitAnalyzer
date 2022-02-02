@@ -64,7 +64,7 @@ public class FileUtils {
 		return filesPath;
 	}
 	
-	public static LinkedHashMap<File, Double> filesValues(Project project, List<File> files){
+	public static LinkedHashMap<File, Double> filesCommitValues(Project project, List<File> files){
 		FileDAO fileDAO = new FileDAO();
 		LinkedHashMap<File, Double> filesValues = new LinkedHashMap<File, Double>();
 		ProjectConstantsDAO projectConstantsDAO = new ProjectConstantsDAO();
@@ -83,7 +83,7 @@ public class FileUtils {
 	
 	public static double sumValueFilesCommit(Project project, List<File> files) {
 		double sum = 0;
-		LinkedHashMap<File, Double> filesValues = filesValues(project, files);
+		LinkedHashMap<File, Double> filesValues = filesCommitValues(project, files);
 		for(Map.Entry<File, Double> fileCommit: filesValues.entrySet()) {
 			sum = sum + filesValues.get(fileCommit.getKey());
 		}
