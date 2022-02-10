@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 @Entity
 public class File {
@@ -16,6 +17,8 @@ public class File {
 	@ManyToOne
 	private Project project;
 	private String extension;
+	@Transient
+	private String content;
 	
 	public File(String path, Project project, String extension) {
 		super();
@@ -57,6 +60,14 @@ public class File {
 
 	public void setExtension(String extension) {
 		this.extension = extension;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
 	}
 
 }

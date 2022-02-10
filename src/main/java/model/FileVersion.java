@@ -1,10 +1,13 @@
 package model;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 @Entity
 public class FileVersion {
@@ -17,6 +20,8 @@ public class FileVersion {
 	@ManyToOne
 	private Commit version;
 	private int numberLines;
+	@OneToMany
+	private List<File> filesReferencesGraph;
 	
 	public FileVersion(File file, Commit version, int numberLines) {
 		super();
@@ -44,6 +49,12 @@ public class FileVersion {
 	}
 	public void setNumberLines(int numberLines) {
 		this.numberLines = numberLines;
+	}
+	public List<File> getFilesReferencesGraph() {
+		return filesReferencesGraph;
+	}
+	public void setFilesReferencesGraph(List<File> filesReferencesGraph) {
+		this.filesReferencesGraph = filesReferencesGraph;
 	}
 
 }

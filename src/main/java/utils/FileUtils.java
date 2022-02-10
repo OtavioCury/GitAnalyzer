@@ -1,13 +1,17 @@
 package utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -47,7 +51,7 @@ public class FileUtils {
 		return files;
 	}
 
-	private static List<String> currentFiles() throws MissingObjectException, IncorrectObjectTypeException, IOException {
+	public static List<String> currentFiles() throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		Ref head = RepositoryAnalyzer.repository.exactRef("HEAD");
 		List<String> filesPath = new ArrayList<String>();
 		RevWalk walk = new RevWalk(RepositoryAnalyzer.repository);
@@ -58,6 +62,28 @@ public class FileUtils {
 		treeWalk.setRecursive(true);
 		while (treeWalk.next()) {
 			filesPath.add(treeWalk.getPathString());
+		}
+		treeWalk.close();
+		walk.close();
+		return filesPath;
+	}
+	
+	public static HashMap<String, String> currentFilesWithContents() throws MissingObjectException, IncorrectObjectTypeException, IOException {
+		Ref head = RepositoryAnalyzer.repository.exactRef("HEAD");
+		HashMap<String, String> filesPath = new HashMap<String, String>();
+		RevWalk walk = new RevWalk(RepositoryAnalyzer.repository);
+		RevCommit commit = walk.parseCommit(head.getObjectId());
+		RevTree tree = commit.getTree();
+		TreeWalk treeWalk = new TreeWalk(RepositoryAnalyzer.repository);
+		treeWalk.addTree(tree);
+		treeWalk.setRecursive(true);
+		while (treeWalk.next()){
+			ObjectId objectId = treeWalk.getObjectId(0);
+			ObjectLoader loader = RepositoryAnalyzer.repository.open(objectId);
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			loader.copyTo(stream);
+			String content = stream.toString();
+			filesPath.put(treeWalk.getPathString(), content);
 		}
 		treeWalk.close();
 		walk.close();
