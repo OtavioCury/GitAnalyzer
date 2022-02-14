@@ -12,28 +12,32 @@ public class Constants {
 	/**
 	 * DOE coefficients
 	 */
-	public static double interceptDoe = 5.28223;
-	public static double addsCoefDoe = 0.23173;
-	public static double faCoefDoe = 0.36151;
-	public static double numDaysCoefDoe = -0.19421;
-	public static double sizeCoefDoe = -0.28761;
+	public static final double interceptDoe = 5.28223;
+	public static final double addsCoefDoe = 0.23173;
+	public static final double faCoefDoe = 0.36151;
+	public static final double numDaysCoefDoe = -0.19421;
+	public static final double sizeCoefDoe = -0.28761;
 
 	/**
 	 * DOA coefficients
 	 */
-	public static double interceptDoa = 3.293;
-	public static double faCoefDoa = 1.098;
-	public static double dlCoefDoa = 0.164;
-	public static double acCoefDoa = -0.321;
+	public static final double interceptDoa = 3.293;
+	public static final double faCoefDoa = 1.098;
+	public static final double dlCoefDoa = 0.164;
+	public static final double acCoefDoa = -0.321;
 
 	public static final String ADD = new String("ADD");
 	public static final String MODIFY = new String("MODIFY");
 	public static final String DELETE = new String("DELETE");
 	public static final String RENAME = new String ("RENAME");
+	
+	public static final String DOT = new String(".");
+	public static final String LESS_THEN = new String("<");
+	public static final String BIGGER_THEN = new String(">");
 
-	public static double thresholdMantainer = 0.75;
+	public static final double thresholdMantainer = 0.75;
 
-	public static int quantKnowledgedDevsByFile = 3;
+	public static final int quantKnowledgedDevsByFile = 3;
 
 	public static Date analisysDate() {
 		Calendar calendar = Calendar.getInstance();

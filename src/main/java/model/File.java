@@ -19,6 +19,8 @@ public class File {
 	private String extension;
 	@Transient
 	private String content;
+	@Transient
+	private ReferenceSet referenceSet;
 	
 	public File(String path, Project project, String extension) {
 		super();
@@ -68,6 +70,14 @@ public class File {
 
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	public ReferenceSet getReferenceSet() {
+		return referenceSet;
+	}
+
+	public void setReferenceSet(ReferenceSet referenceSet) {
+		this.referenceSet = referenceSet;
 	}
 
 }
