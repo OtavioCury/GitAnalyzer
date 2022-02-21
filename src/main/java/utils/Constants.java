@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 
 public class Constants {
+	
+	public static String absPath = "/home/otavio/Desktop/GitAnalyzer/projetos/ihealth/";
 
 	public static List<String> invalidPaths = Arrays.asList(new String[]{"/dev/null"});
 
@@ -34,6 +36,17 @@ public class Constants {
 	public static final String DOT = new String(".");
 	public static final String LESS_THEN = new String("<");
 	public static final String BIGGER_THEN = new String(">");
+	public static final String OPEN_BRACKET = new String("[");
+	public static final String FILE_SEPARATOR = new String("/");
+	public static final String NUMBER_SIGN = new String("#");
+	public static final String COMMA = new String(",");
+	public static final String WHITESPACE = new String(" ");
+	public static final String CLOSE_BRACKET = new String("]");
+	public static final String NEW = new String("new");
+	public static final String OPEN_PARENTHESE = new String("(");
+	public static final String EMPTY = new String("");
+	
+	public static final String JAVA_EXTENSION = new String(".java");
 
 	public static final double thresholdMantainer = 0.75;
 

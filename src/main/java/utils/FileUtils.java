@@ -31,6 +31,12 @@ public class FileUtils {
 		extension = extension.substring(extension.indexOf(".")+1);
 		return extension;
 	}
+	
+	public static String returnFileName(String path) {
+		String name = path.substring(path.lastIndexOf("/")+1);
+		name = name.substring(0, name.indexOf("."));
+		return name;
+	}
 
 	public static List<File> filesToBeAnalyzed(Project project){
 		List<File> files = new ArrayList<File>();
