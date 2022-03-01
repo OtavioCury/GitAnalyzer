@@ -1,19 +1,12 @@
 package extractors;
 
+import java.io.IOException;
 import java.util.List;
 
-import org.eclipse.jgit.api.BlameCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.blame.BlameResult;
-import org.eclipse.jgit.diff.RawText;
-import org.eclipse.jgit.diff.RawTextComparator;
-
-import dao.FileVersionDAO;
-import model.Commit;
+import dao.FileDAO;
 import model.File;
-import model.FileVersion;
 import model.Project;
-import utils.RepositoryAnalyzer;
+import utils.FileUtils;
 
 public class FileExtractor {
 
@@ -25,24 +18,18 @@ public class FileExtractor {
 	}
 
 	public void run() {
-		FileVersionDAO FileVersionDAO = new FileVersionDAO(); 
-		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
-		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
-		for (model.File file : files) {
-			if(FileVersionDAO.existsByFileVersion(file, currentVersion) == false) {
-				try {
-					BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
-					blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
-					blameCommand.setFilePath(file.getPath());
-					BlameResult blameResult = blameCommand.call();
-					RawText rawText = blameResult.getResultContents();
-					int fileSize = rawText.size();
-					FileVersion FileVersion = new FileVersion(file, currentVersion, fileSize);
-					FileVersionDAO.persist(FileVersion);
-				} catch (GitAPIException | java.lang.NullPointerException e) {
-					e.printStackTrace();
+		FileDAO fileDao = new FileDAO();
+		try {
+			List<String> filesPath = FileUtils.currentFiles();
+			for (String path: filesPath) {
+				if (fileDao.existsByFilePathProject(path, project) == false) {
+					File file = new File(path, project, FileUtils.returnFileExtension(path));
+					fileDao.persist(file);
 				}
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
+
 }

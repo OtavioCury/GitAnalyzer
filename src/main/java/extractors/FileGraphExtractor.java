@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,8 +54,68 @@ public class FileGraphExtractor {
 	}
 
 	public void runExtractor() {
-		//javaFilesGraph();
+		javaFilesGraph();
 		jhmXmlFilesGraph();
+		tagFilesGraph();
+	}
+
+	private void tagFilesGraph() {
+		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
+		try {
+			HashMap<String, String> filesString = FileUtils.currentFilesWithContents();
+			HashMap<String, File> filesMap = new HashMap<String, File>();
+			for(Map.Entry<String, String> map: filesString.entrySet()) {
+				File file = fileDAO.findByPath(map.getKey(), project);
+				if(file != null) {
+					file.setContent(map.getValue());
+					filesMap.put(map.getKey(), file);
+				}
+			}
+			List<File> filesTagsJsp = new ArrayList<File>();
+			List<File> files = new ArrayList<File>();
+			for(Map.Entry<String, File> map: filesMap.entrySet()) {
+				File file = map.getValue();
+				if(file.getExtension().equals("tag") || file.getExtension().equals("jsp")) {
+					filesTagsJsp.add(file);
+				}
+				files.add(file);
+			}
+			for (File file : filesTagsJsp) {
+				FileVersion fileVersion = fileVersionDAO.findByFileVersion(file, currentVersion);
+				visitFileReferences(file, files, fileVersion);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void visitFileReferences(File file, List<File> files, FileVersion fileVersion) {
+		String content = file.getContent();
+		if(content.contains(Constants.INCLUDE)) {
+			List<String> filePaths = returnPathByInclude(content);
+			for (String path : filePaths) {
+				File reference = searchFileFromClassFullName(files, path);
+				if (reference != null) {
+					fileVersion.getFilesReferencesGraphOut().add(reference);
+				}
+			}
+		}else if(content.contains(Constants.TAGLIB)){
+			List<String> filePaths = returnPathByTagLib(content);
+			for (String path : filePaths) {
+				File reference = searchFileFromClassFullName(files, path);
+				if (reference != null) {
+					fileVersion.getFilesReferencesGraphOut().add(reference);
+				}
+			}
+		}else if(content.contains(Constants.ATTRIBUTE)) {
+			List<String> filePaths = returnPathByAttribute(content);
+			for (String path : filePaths) {
+				File reference = searchFileFromClassFullName(files, path);
+				if (reference != null) {
+					fileVersion.getFilesReferencesGraphOut().add(reference);
+				}
+			}
+		}
 	}
 
 	private void jhmXmlFilesGraph() {
@@ -70,15 +131,13 @@ public class FileGraphExtractor {
 				}
 			}
 			List<File> filesJhm = new ArrayList<File>();
-			List<File> filesJava = new ArrayList<File>();
+			List<File> files = new ArrayList<File>();
 			for(Map.Entry<String, File> map: filesMap.entrySet()) {
 				File file = map.getValue();
 				if(file.getExtension().equals("jhm.xml")) {
 					filesJhm.add(file);
 				}
-				if(file.getExtension().equals("java")) {
-					filesJava.add(file);
-				}
+				files.add(file);
 			}
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			try {
@@ -94,19 +153,18 @@ public class FileGraphExtractor {
 					if (fileVersion != null) {
 						fileVersion.setFilesReferencesGraphOut(new ArrayList<File>());
 						ByteArrayInputStream input = new ByteArrayInputStream(
-								   file.getContent().getBytes("UTF-8"));
+								file.getContent().getBytes("UTF-8"));
 						Document doc = db.parse(input);
 						doc.getDocumentElement().normalize();
 						Element docElement = doc.getDocumentElement();
 						NodeList nl = docElement.getChildNodes();
 						for(int k = 0; k < nl.getLength(); k++){
-							visitNode((Node) nl.item(k), file, filesJava, fileVersion);
+							analyzeNodeJhm((Node) nl.item(k), file, files, fileVersion);
 						}
 						removeDuplicateReferencesFileVersion(fileVersion);
 						fileVersionDAO.merge(fileVersion);
 					}
 				}
-				System.out.println();
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -114,7 +172,7 @@ public class FileGraphExtractor {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void removeDuplicateReferencesFileVersion(FileVersion fileVersion) {
 		List<File> files = new ArrayList<File>();
 		for (File file : fileVersion.getFilesReferencesGraphOut()) {
@@ -133,39 +191,209 @@ public class FileGraphExtractor {
 		fileVersion.setFilesReferencesGraphOut(files);
 	}
 
-	private void visitNode(Node item, File file, List<File> javaFiles, FileVersion fileVersion) {
-		if (item.getNodeValue() != null && item.getNodeValue().contains("<infoway:")) {
-			System.out.println(item.getNodeValue());
+	private List<String> returnPathByKnownTag(String string) {
+		List<String> pathsFiles = new ArrayList<String>();
+		string = string.replace(Constants.TAB, Constants.EMPTY);
+		String[] splitedString = string.split(Constants.BREAK_LINE);
+		HashMap<String, String> tagString = new HashMap<String, String>();
+		for(Map.Entry<String, String> map: Constants.tagsPathIHealth.entrySet()) {
+			for (int i = 0; i < splitedString.length; i++) {
+				if (splitedString[i].contains(map.getKey())) {
+					tagString.put(map.getKey(), splitedString[i]);
+				}
+			}
+		}
+		for(Map.Entry<String, String> map: tagString.entrySet()) {
+			String endTag = Constants.FILE_SEPARATOR.concat(Constants.BIGGER_THEN);
+			String[] splited = map.getValue().split(map.getKey());
+			String nameFile = splited[1].trim();
+			nameFile = nameFile.replace(endTag, Constants.EMPTY);
+			if (nameFile.contains(Constants.WHITESPACE)) {
+				nameFile = nameFile.substring(0, nameFile.indexOf(Constants.WHITESPACE));
+			}
+			nameFile = nameFile.concat(Constants.TAG_EXTENSION);
+			String path = Constants.tagsPathIHealth.get(map.getKey());
+			nameFile = path.concat(nameFile);
+			pathsFiles.add(nameFile);
+		}
+		return pathsFiles;
+	}
+
+	public List<String> returnPathByInclude(String string){
+		List<String> pathsFiles = new ArrayList<String>();
+		string = string.replace(Constants.TAB, Constants.EMPTY);
+		String[] splitedString = string.split(Constants.BREAK_LINE);
+		List<String> stringIncludes = new ArrayList<String>();
+		for (int i = 0; i < splitedString.length; i++) {
+			if (splitedString[i].contains(Constants.INCLUDE)) {
+				stringIncludes.add(splitedString[i]);
+			}
+		}
+		for (String stringInclude : stringIncludes) {
+			String[] splited = stringInclude.split("\"");
+			if (splited.length > 1) {
+				String filePath = splited[1];
+				pathsFiles.add(filePath);
+			}
+		}
+		return pathsFiles;
+	}
+	
+	private List<String> returnPathByAttribute(String string) {
+		List<String> pathsFiles = new ArrayList<String>();
+		string = string.replace(Constants.TAB, Constants.EMPTY);
+		String[] splitedString = string.split(Constants.BREAK_LINE);
+		List<String> stringIncludes = new ArrayList<String>();
+		for (int i = 0; i < splitedString.length; i++) {
+			if (splitedString[i].contains(Constants.ATTRIBUTE)) {
+				stringIncludes.add(splitedString[i]);
+			}
+		}
+		for (String stringInclude : stringIncludes) {
+			String[] splited = stringInclude.split(Constants.TYPE);
+			String filePath = splited[1];
+			splited = filePath.split("\"");
+			filePath = splited[1];
+			filePath = filePath.replace(Constants.DOT, Constants.FILE_SEPARATOR);
+			filePath = filePath.concat(Constants.JAVA_EXTENSION);
+			pathsFiles.add(filePath);
+		}
+		return pathsFiles;
+	}
+
+	public List<String> returnPathByTagLib(String string){
+		List<String> pathsFiles = new ArrayList<String>();
+		string = string.replace(Constants.TAB, Constants.EMPTY);
+		String[] splitedString = string.split(Constants.BREAK_LINE);
+		List<String> stringTagLib = new ArrayList<String>();
+		for (int i = 0; i < splitedString.length; i++) {
+			if (splitedString[i].contains(Constants.TAGLIB)) {
+				stringTagLib.add(splitedString[i]);
+			}
+		}
+		HashMap<String, String> tagPrefixs = new HashMap<String, String>();
+		for (String tagLib: stringTagLib) {
+			String[] splitedDir1 = tagLib.split(Constants.TAGDIR);
+			if (splitedDir1.length > 1) {
+				String dirPath = splitedDir1[1];
+				String[] splitedDir2 = dirPath.split("\"");
+				dirPath = splitedDir2[1];
+				dirPath = dirPath.concat("/");
+
+				String[] splitedPrefix1 = tagLib.split(Constants.PREFIX);
+				String prefix = splitedPrefix1[1];
+				String[] splitedPrefix2 = prefix.split("\"");
+				prefix = splitedPrefix2[1];
+
+				tagPrefixs.put(prefix, dirPath);
+			}
+		}
+		List<String> stringPrefixReference = new ArrayList<String>();
+		for (int i = 0; i < splitedString.length; i++) {
+			for(Map.Entry<String, String> map: tagPrefixs.entrySet()) {
+				if (splitedString[i].contains(map.getKey().concat(Constants.COLON))) {
+					stringPrefixReference.add(splitedString[i]);
+				}
+			}
+		}
+		for (String stringPrefix : stringPrefixReference) {
+			for(Map.Entry<String, String> map: tagPrefixs.entrySet()) {
+				if (stringPrefix.contains(map.getKey().concat(Constants.COLON))) {
+					String[] splitedPrefix1 = stringPrefix.
+							split(map.getKey().concat(Constants.COLON));
+					String file = splitedPrefix1[1];
+					splitedPrefix1 = file.split(Constants.WHITESPACE);
+					file = splitedPrefix1[0];
+					file = map.getValue().concat(file);
+					pathsFiles.add(file);
+				}
+			}
+		}
+		return pathsFiles;
+	}
+
+	private void findReferencesByTags(String content, List<File> files, FileVersion fileVersion) {
+		if (content.contains(Constants.OPEN_TAG_LIB)) {
+			if(content.contains(Constants.INCLUDE)) {
+				List<String> filePaths = returnPathByInclude(content);
+				for (String path : filePaths) {
+					File reference = searchFileFromClassFullName(files, path);
+					if (reference != null) {
+						fileVersion.getFilesReferencesGraphOut().add(reference);
+					}
+				}
+			}else if(content.contains(Constants.TAGLIB)){
+				List<String> filePaths = returnPathByTagLib(content);
+				for (String path : filePaths) {
+					File reference = searchFileFromClassFullName(files, path);
+					if (reference != null) {
+						fileVersion.getFilesReferencesGraphOut().add(reference);
+					}
+				}
+			}else if(content.contains(Constants.ATTRIBUTE)) {
+				List<String> filePaths = returnPathByAttribute(content);
+				for (String path : filePaths) {
+					File reference = searchFileFromClassFullName(files, path);
+					if (reference != null) {
+						fileVersion.getFilesReferencesGraphOut().add(reference);
+					}
+				}
+			}
+		}
+	}
+
+	private void analyzeNodeJhm(Node item, File file, List<File> files, FileVersion fileVersion) {
+		if (item.getNodeValue() != null) {
+			Set<String> tags = Constants.tagsPathIHealth.keySet();
+			Iterator<String> tagsI = tags.iterator();
+			boolean contains = false;
+			while(tagsI.hasNext()) {
+				String tag = tagsI.next();
+				if (item.getNodeValue().contains(tag)) {
+					contains = true;
+					break;
+				}
+			}
+			if (contains == true) {
+				List<String> paths = returnPathByKnownTag(item.getNodeValue());
+				for (String path : paths) {
+					File reference = searchFileFromClassFullName(files, path);
+					if (reference != null) {
+						fileVersion.getFilesReferencesGraphOut().add(reference);
+					}
+				}
+			}
+			findReferencesByTags(item.getNodeValue(), files, fileVersion);
 		}
 		if (item.hasChildNodes()) {
 			if (item.getAttributes() != null && item.getAttributes().getNamedItem("class") != null) {
 				String path = item.getAttributes().getNamedItem("class").getNodeValue();
 				path = convertPathString(path);
-				File reference = searchFileFromClassFullName(javaFiles, path);
+				File reference = searchFileFromClassFullName(files, path);
 				if (reference != null) {
 					fileVersion.getFilesReferencesGraphOut().add(reference);
 				}
 			}
-			if (item.getAttributes() != null && item.getAttributes().getNamedItem("type") != null) {
-				String path = item.getAttributes().getNamedItem("type").getNodeValue();
+			if (item.getAttributes() != null && item.getAttributes().getNamedItem(Constants.TYPE) != null) {
+				String path = item.getAttributes().getNamedItem(Constants.TYPE).getNodeValue();
 				path = convertPathString(path);
-				File reference = searchFileFromClassFullName(javaFiles, path);
+				File reference = searchFileFromClassFullName(files, path);
 				if (reference != null) {
 					fileVersion.getFilesReferencesGraphOut().add(reference);
 				}
 			}
 			NodeList nl = item.getChildNodes();
 			for(int j=0;j<nl.getLength();j++)
-				visitNode(nl.item(j), file, javaFiles, fileVersion);
+				analyzeNodeJhm(nl.item(j), file, files, fileVersion);
 		}
 	}
-	
+
 	private String convertPathString(String path) {
 		path = path.replace(Constants.DOT, Constants.FILE_SEPARATOR);
 		path = path.concat(Constants.JAVA_EXTENSION);
 		return path;
 	}
-	
+
 	private void javaFilesGraph() {
 		try {
 			HashMap<String, String> filesString = FileUtils.currentFilesWithContents();
@@ -192,9 +420,7 @@ public class FileGraphExtractor {
 				visitAst(unit, file);
 				filesJava.add(file);
 			}
-
 			createReferences(filesJava);
-			System.out.println();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}		
@@ -258,13 +484,8 @@ public class FileGraphExtractor {
 			}
 			FileVersion fileVersion = fileVersionDAO.findByFileVersion(file, currentVersion);
 			if (fileVersion != null) {
-				if (references.size() == 0) {
-					System.out.println();
-				}
 				fileVersion.setFilesReferencesGraphOut(references);
 				fileVersionDAO.merge(fileVersion);
-			}else {
-				System.out.println();
 			}
 		}
 	}
@@ -333,7 +554,7 @@ public class FileGraphExtractor {
 
 		referenceSet.getReferences().removeAll(referencesToRemove);
 	}
-	
+
 	private void removeDuplicatedReferences(ReferenceSet referenceSet){
 		Map<String,String> map = new HashMap<String, String>();
 

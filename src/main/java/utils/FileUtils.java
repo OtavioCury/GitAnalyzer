@@ -56,7 +56,7 @@ public class FileUtils {
 		filterFilesByExtensions(project, files);
 		return files;
 	}
-
+	
 	public static List<String> currentFiles() throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		Ref head = RepositoryAnalyzer.repository.exactRef("HEAD");
 		List<String> filesPath = new ArrayList<String>();

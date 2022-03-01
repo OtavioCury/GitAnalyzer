@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 
+import model.Commit;
 import model.File;
 import model.Project;
 
@@ -19,6 +20,15 @@ public class FileDAO extends GenericDAO<File>{
 	@Override
 	public boolean exist(File entity) {
 		return false;
+	}
+	
+	public boolean existsByFilePathProject(String path, Project project) {
+		String hql = "select count(id) from File f where f.path=:path and f.project.id=:id";
+		Query q = em.createQuery(hql);
+		q.setParameter("path", path);
+		q.setParameter("id", project.getId());
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;
 	}
 
 	public File findByPath(String path, Project project) {

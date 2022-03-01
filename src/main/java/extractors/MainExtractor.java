@@ -18,17 +18,22 @@ public class MainExtractor {
 		ProjectDAO projectDao = new ProjectDAO();
 		Project project = projectDao.findByName(projectName);
 		RepositoryAnalyzer.initRepository(projectName);
-//		extractCommits(project);
-//		extractContributors(project);
-//		extractFiles(project);
-//		extractAuthorFile(project);
-//		extractDoe(project);
-//		extractDoa(project);
+		extractFiles(project);
+		extractCommits(project);
+		extractFilesVersion(project);
+		extractAuthorFile(project);
 		extractFileGraph(project);
+		extractDoe(project);
+		extractDoa(project);
 		System.out.println("================ End of Analysis ===========");
 		RepositoryAnalyzer.git.close();
 	}
 	
+	private static void extractFilesVersion(Project project) {
+		FileVersionExtractor fileVersionAnalyzer = new FileVersionExtractor(project);
+		fileVersionAnalyzer.run();
+	}
+
 	private static void extractFileGraph(Project project) {
 		FileGraphExtractor fileGraphExtractor = new FileGraphExtractor(project);
 		fileGraphExtractor.runExtractor();

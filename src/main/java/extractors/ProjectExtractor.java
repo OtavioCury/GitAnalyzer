@@ -21,8 +21,9 @@ public class ProjectExtractor {
 			ProjectConstants projectConstants = null;
 			if(projectName.trim().toUpperCase().equals("IHEALTH")) {
 				projectConstants = new ProjectConstants(project, 
-						Arrays.asList(new String[]{"jhm.xml", "java", "jsp", "tag", "jrxml"}), 
-						Arrays.asList(new String[]{"ad7a3b429dbf7cbcc79ad6efe8789bfd8dbb216e"}), null);
+						Arrays.asList(new String[]{"jhm.xml", "java", "jsp", "tag"}), 
+						Arrays.asList(new String[]{"ad7a3b429dbf7cbcc79ad6efe8789bfd8dbb216e"}),
+						Arrays.asList(new String[]{"target"}));
 				projectConstantsDao.persist(projectConstants);
 			}
 			project.setProjectConstants(projectConstants);

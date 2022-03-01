@@ -3,7 +3,9 @@ package utils;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Constants {
 	
@@ -45,16 +47,33 @@ public class Constants {
 	public static final String NEW = new String("new");
 	public static final String OPEN_PARENTHESE = new String("(");
 	public static final String EMPTY = new String("");
+	public static final String COLON = new String(":");
 	
 	public static final String JAVA_EXTENSION = new String(".java");
+	public static final String TAG_EXTENSION = new String(".tag");
+	
+	public static final String TAB = new String("\t");
+	public static final String BREAK_LINE = new String("\n");
+	
+	public static final String OPEN_TAG_LIB = new String("<%@");
+	public static final String INCLUDE = new String("include");
+	public static final String TAGLIB = new String("taglib");
+	public static final String TAGDIR = new String("tagdir");
+	public static final String PREFIX = new String("prefix");
+	public static final String ATTRIBUTE = new String("attribute");
+	public static final String TYPE = new String("type");
 
 	public static final double thresholdMantainer = 0.75;
 
 	public static final int quantKnowledgedDevsByFile = 3;
+	
+	public static final Map<String, String> tagsPathIHealth = new HashMap<String, String>(){{
+		put("infoway:", "template/WEB-INF/tags/");
+	}};
 
 	public static Date analisysDate() {
 		Calendar calendar = Calendar.getInstance();
-		calendar.set(2017, 12, 31, 59, 59, 59);
+		calendar.set(2015, 12, 31, 59, 59, 59);
 		Date date = calendar.getTime();
 		return date;
 	}
