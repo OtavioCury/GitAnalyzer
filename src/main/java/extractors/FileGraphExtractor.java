@@ -83,6 +83,8 @@ public class FileGraphExtractor {
 			for (File file : filesTagsJsp) {
 				FileVersion fileVersion = fileVersionDAO.findByFileVersion(file, currentVersion);
 				visitFileReferences(file, files, fileVersion);
+				removeDuplicateReferencesFileVersion(fileVersion);
+				fileVersionDAO.merge(fileVersion);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
