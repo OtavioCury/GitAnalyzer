@@ -58,12 +58,15 @@ public class FileDAO extends GenericDAO<File>{
 		return q.getResultList();
 	}
 
-	public LinkedHashMap<File, Long> findOrderedMostCommited(Project project, List<File> files){
+	public LinkedHashMap<File, Long> findOrderedMostCommited(Project project, List<File> files, 
+			Commit currentCommit){
 		List<Long> idsFiles = files.stream().map(File::getId).collect(Collectors.toList());
 		LinkedHashMap<File, Long> fileCommits = new LinkedHashMap<File, Long>();
-		String hql = "select count(*) as count_file, cf.file.path from CommitFile cf where cf.file.id in (:idFiles) group by cf.file.path order by count_file desc";
+		String hql = "select count(*) as count_file, cf.file.path from CommitFile cf where cf.file.id in (:idFiles)"
+				+ " and cf.commit.date <= :date group by cf.file.path order by count_file desc";
 		Query q = em.createQuery(hql);
 		q.setParameter("idFiles", idsFiles);
+		q.setParameter("date", currentCommit.getDate());
 		List<Object[]> objects = q.getResultList();
 		for(Object[] object: objects) {
 			Long numberCommits = (Long) object[0];

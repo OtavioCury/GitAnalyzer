@@ -17,12 +17,17 @@ public class File {
 	@ManyToOne
 	private Project project;
 	private String extension;
+	
 	@Transient
 	private String content;
 	@Transient
 	private ReferenceSet referenceSet;
 	@Transient
 	private String packageName;
+	@Transient 
+	private int degreeReferences;
+	@Transient
+	private double scoreBetweennessCentrality;
 	
 	public File(String path, Project project, String extension) {
 		super();
@@ -88,6 +93,22 @@ public class File {
 
 	public void setPackageName(String packageName) {
 		this.packageName = packageName;
+	}
+
+	public int getDegreeReferences() {
+		return degreeReferences;
+	}
+
+	public void setDegreeReferences(int degreeReferences) {
+		this.degreeReferences = degreeReferences;
+	}
+
+	public double getScoreBetweennessCentrality() {
+		return scoreBetweennessCentrality;
+	}
+
+	public void setScoreBetweennessCentrality(double scoreBetweennessCentrality) {
+		this.scoreBetweennessCentrality = scoreBetweennessCentrality;
 	}
 
 }

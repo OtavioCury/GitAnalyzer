@@ -78,10 +78,9 @@ public class Constants {
 		return date;
 	}
 
-	public static Date thresholdDateDisable() {
-		Date referenceDate = new Date();
+	public static Date thresholdDateDisable(Date currentCommitDate) {
 		Calendar c = Calendar.getInstance(); 
-		c.setTime(referenceDate); 
+		c.setTime(currentCommitDate); 
 		c.add(Calendar.MONTH, -3);
 		return c.getTime();
 	}

@@ -20,6 +20,7 @@ public class MainExtractor {
 		RepositoryAnalyzer.initRepository(projectName);
 		extractFiles(project);
 		extractCommits(project);
+		extractContributors(project);
 		extractFilesVersion(project);
 		extractAuthorFile(project);
 		extractFileGraph(project);

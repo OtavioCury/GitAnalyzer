@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import dao.ProjectDAO;
 import extractors.ProjectExtractor;
 import model.Commit;
 import model.Contributor;
@@ -17,6 +16,7 @@ import utils.ContributorsUtils;
 import utils.DoaUtils;
 import utils.DoeUtils;
 import utils.FileUtils;
+import utils.ProjectUtils;
 import utils.RepositoryAnalyzer;
 
 public class TruckFactorAnalyzer {
@@ -29,10 +29,10 @@ public class TruckFactorAnalyzer {
 		ProjectExtractor.init(args[0]);
 		String projectName = ProjectExtractor.extractProjectName(args[0]);
 		RepositoryAnalyzer.initRepository(projectName);
-		Project project = getProjectByName(projectName);
+		Project project = ProjectUtils.getProjectByName(projectName);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
-		//calculateClassifcalTruckFactor(project, files);
-		calculateFileAwareTruckFactor(project, files);
+		calculateClassifcalTruckFactor(project, files);
+		//calculateFileAwareTruckFactor(project, files);
 		RepositoryAnalyzer.git.close();
 	}
 		
@@ -110,22 +110,22 @@ public class TruckFactorAnalyzer {
 		for(Contributor contributor: removedContributors) {
 			System.out.println(contributor.getName());
 		}
-		System.out.println("=========== Analysis avelino's truckfactor DOE ===========");
-		tf = 0;
-		contributors = contributorsUtils.activeContributors(project);
-		contributorsUtils.removeAlias(contributors);
-		removedContributors = new ArrayList<Contributor>();
-		while(contributors.isEmpty() == false) {
-			double covarage = getCoverageDOE(contributors, files);
-			if(covarage < 0.5) 
-				break;
-			removedContributors.add(removeTopAuthorDOE(contributors, files));
-			tf = tf+1;
-		}
-		System.out.println("Top contributors truckfactor DOE");
-		for(Contributor contributor: removedContributors) {
-			System.out.println(contributor.getName());
-		}
+//		System.out.println("=========== Analysis avelino's truckfactor DOE ===========");
+//		tf = 0;
+//		contributors = contributorsUtils.activeContributors(project);
+//		contributorsUtils.removeAlias(contributors);
+//		removedContributors = new ArrayList<Contributor>();
+//		while(contributors.isEmpty() == false) {
+//			double covarage = getCoverageDOE(contributors, files);
+//			if(covarage < 0.5) 
+//				break;
+//			removedContributors.add(removeTopAuthorDOE(contributors, files));
+//			tf = tf+1;
+//		}
+//		System.out.println("Top contributors truckfactor DOE");
+//		for(Contributor contributor: removedContributors) {
+//			System.out.println(contributor.getName());
+//		}
 	}
 	
 	private static double getCoverageDOE(List<Contributor> contributors, List<File> files) {
@@ -257,11 +257,4 @@ public class TruckFactorAnalyzer {
 		contributors.remove(topAuthor);
 		return topAuthor;
 	}
-	
-	private static Project getProjectByName(String projectName) {
-		ProjectDAO projectDao = new ProjectDAO();
-		Project project = projectDao.findByName(projectName);
-		return project;
-	}
-
 }

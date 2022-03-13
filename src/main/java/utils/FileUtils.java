@@ -3,6 +3,8 @@ package utils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,8 +21,11 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
 import dao.FileDAO;
+import dao.FileVersionDAO;
 import dao.ProjectConstantsDAO;
+import model.Commit;
 import model.File;
+import model.FileVersion;
 import model.Project;
 import model.ProjectConstants;
 
@@ -31,7 +36,7 @@ public class FileUtils {
 		extension = extension.substring(extension.indexOf(".")+1);
 		return extension;
 	}
-	
+
 	public static String returnFileName(String path) {
 		String name = path.substring(path.lastIndexOf("/")+1);
 		name = name.substring(0, name.indexOf("."));
@@ -56,7 +61,7 @@ public class FileUtils {
 		filterFilesByExtensions(project, files);
 		return files;
 	}
-	
+
 	public static List<String> currentFiles() throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		Ref head = RepositoryAnalyzer.repository.exactRef("HEAD");
 		List<String> filesPath = new ArrayList<String>();
@@ -73,7 +78,7 @@ public class FileUtils {
 		walk.close();
 		return filesPath;
 	}
-	
+
 	public static HashMap<String, String> currentFilesWithContents() throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		Ref head = RepositoryAnalyzer.repository.exactRef("HEAD");
 		HashMap<String, String> filesPath = new HashMap<String, String>();
@@ -95,12 +100,12 @@ public class FileUtils {
 		walk.close();
 		return filesPath;
 	}
-	
+
 	public static LinkedHashMap<File, Double> filesCommitValues(Project project, List<File> files){
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		FileDAO fileDAO = new FileDAO();
 		LinkedHashMap<File, Double> filesValues = new LinkedHashMap<File, Double>();
-		ProjectConstantsDAO projectConstantsDAO = new ProjectConstantsDAO();
-		LinkedHashMap<File, Long> fileCommits = fileDAO.findOrderedMostCommited(project, files);
+		LinkedHashMap<File, Long> fileCommits = fileDAO.findOrderedMostCommited(project, files, currentCommit);
 		int maior = 0;
 		for(Map.Entry<File, Long> fileCommit: fileCommits.entrySet()) {
 			if(fileCommit.getValue() > maior) {
@@ -113,6 +118,66 @@ public class FileUtils {
 		return filesValues;
 	}
 	
+	public static LinkedHashMap<File, Integer> filesSizeValues(Project project, List<File> files) {
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
+		FileVersionDAO filesVersionDAO = new FileVersionDAO();
+		List<FileVersion> filesVersions = new ArrayList<FileVersion>();
+		for (File file : files) {
+			filesVersions.add(filesVersionDAO.findByFileVersion(file, currentCommit));
+		}
+		Collections.sort(filesVersions, new Comparator<FileVersion>() {
+		    @Override
+		    public int compare(FileVersion f1, FileVersion f2) {
+		        return Integer.compare(f2.getNumberLines(), f1.getNumberLines());
+		    }
+		});
+		LinkedHashMap<File, Integer> filesSizeValues = new LinkedHashMap<File, Integer>();
+		for (FileVersion fileVersion : filesVersions) {
+			filesSizeValues.put(fileVersion.getFile(), fileVersion.getNumberLines());
+		}
+		return filesSizeValues;
+	}
+
+	public static LinkedHashMap<File, Double> filesDegreeValues(Project project, List<File> files){
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
+		FileVersionDAO filesVersionDAO = new FileVersionDAO();
+		List<FileVersion> filesVersions = new ArrayList<FileVersion>();
+		for (File file: files) {
+			FileVersion fileVersion = filesVersionDAO.findByFileVersion(file, currentCommit);
+			if (fileVersion != null) {
+				filesVersions.add(fileVersion);
+			}
+		}
+		for (File file : files) {
+			for (FileVersion fileVersion : filesVersions) {
+				if (file.getId().equals(fileVersion.getFile().getId())) {
+					file.setDegreeReferences(fileVersion.getFilesReferencesGraphOut().size());
+					file.setDegreeReferences(file.getDegreeReferences()+countReferencesToFile(file, filesVersions));
+				}
+			}
+		}
+		Collections.sort(files, Comparator.comparingInt(File::getDegreeReferences).reversed());
+		LinkedHashMap<File, Double> filesDegreeValues = new LinkedHashMap<File, Double>();
+		for (File fileAux: files) {
+			filesDegreeValues.put(fileAux, (double)fileAux.getDegreeReferences()/(double)files.get(0).getDegreeReferences());
+		}
+		return filesDegreeValues;
+	}
+
+	public static int countReferencesToFile(File file, List<FileVersion> filesVersions) {
+		int references = 0;
+		for (FileVersion fileVersion: filesVersions) {
+			if (fileVersion.getFile().getId().equals(file.getId()) == false) {
+				for (File fileReference : fileVersion.getFilesReferencesGraphOut()) {
+					if (fileReference.getId().equals(file.getId())) {
+						references++;
+					}
+				}
+			}
+		}
+		return references;
+	}
+
 	public static double sumValueFilesCommit(Project project, List<File> files) {
 		double sum = 0;
 		LinkedHashMap<File, Double> filesValues = filesCommitValues(project, files);
@@ -134,5 +199,4 @@ public class FileUtils {
 		}
 		files.removeAll(removedFiles);
 	}
-	
 }

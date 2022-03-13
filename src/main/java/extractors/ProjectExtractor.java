@@ -34,7 +34,7 @@ public class ProjectExtractor {
 	public static String extractProjectName(String path) {
 		String fileSeparator = File.separator;
 		String[] splitedPath = path.split("\\"+fileSeparator);
-		String projectName = splitedPath[splitedPath.length - 2];
+		String projectName = splitedPath[splitedPath.length - 1];
 		return projectName;
 	}
 

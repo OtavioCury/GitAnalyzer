@@ -30,7 +30,7 @@ public class ContributorExtractor {
 		for(Contributor contributor: contributors) {
 			if(contributorVersionDAO.existsContributorVersion(contributor, currentVersion) == false) {
 				ContributorVersion contributorVersion = new ContributorVersion(contributor, currentVersion); 
-				if(commitDAO.findLastCommitByContributor(contributor).before(Constants.thresholdDateDisable())
+				if(commitDAO.findLastCommitByContributor(contributor).before(Constants.thresholdDateDisable(currentVersion.getDate()))
 						|| isNotADev(contributor)) {
 					contributorVersion.setDisabled(true);
 				}
