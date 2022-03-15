@@ -1,14 +1,18 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
 import dao.ContributorDAO;
 import dao.ContributorVersionDAO;
+import enums.KnowledgeMetric;
 import model.Commit;
 import model.Contributor;
+import model.File;
 import model.Project;
 
 public class ContributorsUtils {
@@ -68,5 +72,49 @@ public class ContributorsUtils {
 			}
 		}
 		contributors.removeAll(removed);
+	}
+
+	public void sortContributorsByMetric(List<Contributor> contributors, List<File> files, 
+			KnowledgeMetric metric) {
+		Commit commit = RepositoryAnalyzer.getCurrentCommit();
+		DoaUtils doaUtils = new DoaUtils(commit);
+		DoeUtils doeUtils = new DoeUtils(commit);
+		for (File file : files) {
+			List<Contributor> experts = null;
+			if (metric.equals(KnowledgeMetric.DOA)) {
+				experts = doaUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+			}else if(metric.equals(KnowledgeMetric.DOE)){
+				experts = doeUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+			}
+			for (Contributor expert: experts) {
+				for (Contributor contributor: contributors) {
+					if (expert.getId().equals(contributor.getId())) {
+						contributor.setNumberFilesAuthor(contributor.getNumberFilesAuthor()+1);
+					}
+				}
+			}
+		}
+	}
+
+	public void sortContributorsByMetric(List<Contributor> contributors, 
+			LinkedHashMap<File, Double> filesValues, KnowledgeMetric metric) {
+		Commit commit = RepositoryAnalyzer.getCurrentCommit();
+		DoaUtils doaUtils = new DoaUtils(commit);
+		DoeUtils doeUtils = new DoeUtils(commit);
+		for(Map.Entry<File, Double> fileValue: filesValues.entrySet()) {
+			List<Contributor> experts = null;
+			if (metric.equals(KnowledgeMetric.DOA)) {
+				experts = doaUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
+			}else if(metric.equals(KnowledgeMetric.DOE)){
+				experts = doeUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
+			}
+			for (Contributor expert: experts) {
+				for (Contributor contributor: contributors) {
+					if (expert.getId().equals(contributor.getId())) {
+						contributor.setSumFileImportance(contributor.getSumFileImportance()+fileValue.getValue());
+					}
+				}
+			}
+		}
 	}
 }

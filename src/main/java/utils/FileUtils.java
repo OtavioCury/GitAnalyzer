@@ -19,10 +19,15 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.scoring.BetweennessCentrality;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 
 import dao.FileDAO;
 import dao.FileVersionDAO;
 import dao.ProjectConstantsDAO;
+import enums.FileImportanceMetric;
 import model.Commit;
 import model.File;
 import model.FileVersion;
@@ -100,6 +105,20 @@ public class FileUtils {
 		walk.close();
 		return filesPath;
 	}
+	
+	public static LinkedHashMap<File, Double> filesValues(Project project, List<File> files, 
+			FileImportanceMetric fileImportanceMetric){
+		if (fileImportanceMetric.equals(FileImportanceMetric.SIZE)) {
+			return filesSizeValues(project, files);
+		}else if(fileImportanceMetric.equals(FileImportanceMetric.COMMITS)) {
+			return filesCommitValues(project, files);
+		}else if(fileImportanceMetric.equals(FileImportanceMetric.BETWEENNESS_CENTRALITY)) {
+			return filesBetweennessCentralityValues(project, files);
+		}else if(fileImportanceMetric.equals(FileImportanceMetric.DEGREE_IN_OUT)) {
+			return filesDegreeValues(project, files);
+		}
+		return null;
+	}
 
 	public static LinkedHashMap<File, Double> filesCommitValues(Project project, List<File> files){
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
@@ -118,7 +137,7 @@ public class FileUtils {
 		return filesValues;
 	}
 	
-	public static LinkedHashMap<File, Integer> filesSizeValues(Project project, List<File> files) {
+	public static LinkedHashMap<File, Double> filesSizeValues(Project project, List<File> files) {
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		FileVersionDAO filesVersionDAO = new FileVersionDAO();
 		List<FileVersion> filesVersions = new ArrayList<FileVersion>();
@@ -131,9 +150,9 @@ public class FileUtils {
 		        return Integer.compare(f2.getNumberLines(), f1.getNumberLines());
 		    }
 		});
-		LinkedHashMap<File, Integer> filesSizeValues = new LinkedHashMap<File, Integer>();
+		LinkedHashMap<File, Double> filesSizeValues = new LinkedHashMap<File, Double>();
 		for (FileVersion fileVersion : filesVersions) {
-			filesSizeValues.put(fileVersion.getFile(), fileVersion.getNumberLines());
+			filesSizeValues.put(fileVersion.getFile(), (double)fileVersion.getNumberLines()/(double)filesVersions.get(0).getNumberLines());
 		}
 		return filesSizeValues;
 	}
@@ -162,6 +181,43 @@ public class FileUtils {
 			filesDegreeValues.put(fileAux, (double)fileAux.getDegreeReferences()/(double)files.get(0).getDegreeReferences());
 		}
 		return filesDegreeValues;
+	}
+	
+	public static LinkedHashMap<File, Double> filesBetweennessCentralityValues(Project project, List<File> files){
+		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
+		FileVersionDAO filesVersionDAO = new FileVersionDAO();
+		Graph<String, DefaultEdge> directedGraph = new DefaultDirectedGraph<>(DefaultEdge.class);
+		for (File file : files) {
+			directedGraph.addVertex(file.getPath());
+		}
+		for (File file : files) {
+			FileVersion fileVersion = filesVersionDAO.findByFileVersion(file, currentVersion);
+			List<File> filesOut = fileVersion.getFilesReferencesGraphOut();
+			for (File fileOut : filesOut) {
+				directedGraph.addEdge(file.getPath(), fileOut.getPath());
+			}
+		}
+		BetweennessCentrality<String, DefaultEdge> bt = new BetweennessCentrality<String, DefaultEdge>(directedGraph);
+		Map<String, Double> map = bt.getScores();
+		for(Map.Entry<String, Double> mapFile: map.entrySet()) {
+			for (File file : files) {
+				if (file.getPath().equals(mapFile.getKey())) {
+					file.setScoreBetweennessCentrality(mapFile.getValue());
+				}
+			}
+		}
+		Collections.sort(files, new Comparator<File>() {
+		    @Override
+		    public int compare(File f1, File f2) {
+		        return Double.compare(f2.getScoreBetweennessCentrality(), f1.getScoreBetweennessCentrality());
+		    }
+		});
+		LinkedHashMap<File, Double> filesBetweennessValues = new LinkedHashMap<File, Double>();
+		for (File fileAux: files) {
+			filesBetweennessValues.put(fileAux, 
+					(double)fileAux.getScoreBetweennessCentrality()/(double)files.get(0).getScoreBetweennessCentrality());
+		}
+		return filesBetweennessValues;
 	}
 
 	public static int countReferencesToFile(File file, List<FileVersion> filesVersions) {

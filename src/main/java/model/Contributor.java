@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 @Entity
 public class Contributor {
@@ -16,6 +17,11 @@ public class Contributor {
 	private String email;
 	@ManyToOne
 	private Project project;
+	
+	@Transient
+	private int numberFilesAuthor;
+	@Transient
+	private double sumFileImportance;
 
 	public Contributor(String name, String email, Project project) {
 		super();
@@ -57,5 +63,21 @@ public class Contributor {
 
 	public void setProject(Project project) {
 		this.project = project;
+	}
+
+	public int getNumberFilesAuthor() {
+		return numberFilesAuthor;
+	}
+
+	public void setNumberFilesAuthor(int numberFilesAuthor) {
+		this.numberFilesAuthor = numberFilesAuthor;
+	}
+	
+	public double getSumFileImportance() {
+		return sumFileImportance;
+	}
+
+	public void setSumFileImportance(double sumFileImportance) {
+		this.sumFileImportance = sumFileImportance;
 	}
 }

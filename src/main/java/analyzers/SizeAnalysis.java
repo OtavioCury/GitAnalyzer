@@ -19,9 +19,9 @@ public class SizeAnalysis {
 		RepositoryAnalyzer.initRepository(projectName);
 		Project project = ProjectUtils.getProjectByName(projectName);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
-		LinkedHashMap<File, Integer> filesSizeValues = FileUtils.filesSizeValues(project, files);
+		LinkedHashMap<File, Double> filesSizeValues = FileUtils.filesSizeValues(project, files);
 		int i = 1;
-		for(Map.Entry<File, Integer> fileSize: filesSizeValues.entrySet()) {
+		for(Map.Entry<File, Double> fileSize: filesSizeValues.entrySet()) {
 			if (i == 11) {
 				break;
 			}else {
