@@ -1,17 +1,16 @@
 package enums;
 
-public enum KnowledgeMetric {
-	DOA("DOA"), DOE("DOE");
+public enum TruckFactorType {
+	
+	CLASSICAL("CLASSICAL"), FILE_IMPORTANCE_AWARE("FILE_IMPORTANCE_AWARE"); 
 	
 	private String name;
-
-	private KnowledgeMetric(String name) {
+	private TruckFactorType(String name) {
 		this.name = name;
 	}
 	public String getName() {
 		return name;
 	}
-
 	public void setName(String name) {
 		this.name = name;
 	}

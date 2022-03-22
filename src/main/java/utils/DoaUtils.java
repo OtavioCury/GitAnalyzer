@@ -17,27 +17,23 @@ import model.Project;
 
 public class DoaUtils extends MetricsUtils{
 	
-	private CommitFileDAO commitFileDAO = new CommitFileDAO();
-	private AuthorDoaDAO authorDoaDAO = new AuthorDoaDAO(); 
-
-	public DoaUtils(Commit currentCommit) {
-		super();
-		this.currentCommit = currentCommit;
-	}
+	private static CommitFileDAO commitFileDAO = new CommitFileDAO();
+	private static AuthorDoaDAO authorDoaDAO = new AuthorDoaDAO(); 
 	
-	public double getDOA(int fa, int dl, int ac) {
+	public static double getDOA(int fa, int dl, int ac) {
 		double faModel = Constants.faCoefDoa*fa;
 		double dlModel = Constants.dlCoefDoa*dl;
 		double acModel = Constants.acCoefDoa*Math.log(ac + 1);
 		return Constants.interceptDoa + faModel + dlModel + acModel;
 	}
 	
-	public double getContributorFileDOA(Contributor contributor, File file) {
+	public static double getContributorFileDOA(Contributor contributor, File file) {
 		return getDOA(getFA(contributor, file), getDl(contributor, file),
 				getAc(contributor, file));	
 	}
 
-	private int getAc(Contributor contributor, File file) {
+	private static int getAc(Contributor contributor, File file) {
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
 		contributors.add(contributor);
 		Set<File> files = getFilesRenames(file);
@@ -45,7 +41,8 @@ public class DoaUtils extends MetricsUtils{
 		return numberCommits;
 	}
 
-	private int getDl(Contributor contributor, File file) {
+	private static int getDl(Contributor contributor, File file) {
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
 		contributors.add(contributor);
 		Set<File> files = getFilesRenames(file);
@@ -53,7 +50,8 @@ public class DoaUtils extends MetricsUtils{
 		return numberCommits;
 	}
 	
-	public List<Contributor> getMantainersByFile(File file, double threshold){
+	public static List<Contributor> getMantainersByFile(File file, double threshold){
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<Contributor> mantainers = new ArrayList<Contributor>();
 		List<AuthorDOA> doas = authorDoaDAO.findByFileVersion(file, currentCommit);
 		if(doas != null && doas.size() > 0) {
@@ -69,6 +67,7 @@ public class DoaUtils extends MetricsUtils{
 	}
 	
 	public List<ContributorDTO> getMostKnowledgedByFile(String filePath, String projectName){
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		Project project = projectDAO.findByName(projectName);
 		File file = fileDAO.findByPath(filePath, project);
 		Set<File> files = getFilesRenames(file);

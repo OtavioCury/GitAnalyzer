@@ -5,63 +5,88 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import dao.ProjectVersionDAO;
+import dao.ProjectVersionTruckFactorDAO;
 import enums.KnowledgeMetric;
+import enums.TruckFactorType;
+import extractors.ProjectExtractor;
 import model.Commit;
 import model.Contributor;
 import model.File;
+import model.Project;
+import model.ProjectVersion;
+import model.ProjectVersionTruckFactor;
 import utils.Constants;
 import utils.ContributorsUtils;
 import utils.DoaUtils;
 import utils.DoeUtils;
+import utils.ProjectUtils;
 import utils.RepositoryAnalyzer;
 
-public class ClassicalTruckFactorAnalysis extends Analyzer{
+public class ClassicalTruckFactorAnalysis {
 	
-	private static Commit commit = RepositoryAnalyzer.getCurrentCommit();
-	private static DoaUtils doaUtils = new DoaUtils(commit);
-	private static DoeUtils doeUtils = new DoeUtils(commit);
 	private static ContributorsUtils contributorsUtils = new ContributorsUtils();
 	
 	public static void main(String[] args) {
-		AnalyzerDTO analyzerDTO = getFiles(args[0]);
+		ProjectVersionDAO projectVersionDAO = new ProjectVersionDAO();
+		ProjectVersionTruckFactorDAO projectVersionTruckFactorDAO = new ProjectVersionTruckFactorDAO();
+		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
+		
+		ProjectExtractor.init(args[0]);
+		String projectName = ProjectExtractor.extractProjectName(args[0]);
+		RepositoryAnalyzer.initRepository(projectName);
+		Project project = ProjectUtils.getProjectByName(projectName);
+		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
+		
 		KnowledgeMetric metric = KnowledgeMetric.DOA;
 		
 		System.out.println("=========== Analysis avelino's truckfactor "+metric.getName()+" ===========");
 		int tf = 0;
-		List<Contributor> contributors = contributorsUtils.activeContributors(analyzerDTO.getProject());
+		List<Contributor> contributors = contributorsUtils.activeContributors(project);
 		contributorsUtils.removeAlias(contributors);
-		contributorsUtils.sortContributorsByMetric(contributors, analyzerDTO.getAnalyzedFiles(), metric);
+		contributorsUtils.sortContributorsByMetric(contributors, files, metric);
 		Collections.sort(contributors, new Comparator<Contributor>() {
 		    @Override
 		    public int compare(Contributor c1, Contributor c2) {
 		        return Integer.compare(c2.getNumberFilesAuthor(), c1.getNumberFilesAuthor());
 		    }
 		});
-		List<Contributor> removedContributors = new ArrayList<Contributor>();
+		List<Contributor> topContributors = new ArrayList<Contributor>();
 		while(contributors.isEmpty() == false) {
-			double covarage = getCoverage(contributors, analyzerDTO.getAnalyzedFiles(), metric);
+			double covarage = getCoverage(contributors, files, metric);
 			if(covarage < 0.5) 
 				break;
-			removedContributors.add(contributors.get(0));
+			topContributors.add(contributors.get(0));
 			contributors.remove(0);
 			tf = tf+1;
 		}
 		System.out.println("Top contributors");
-		for(Contributor contributor: removedContributors) {
+		for(Contributor contributor: topContributors) {
 			System.out.println(contributor.getName());
+		}
+		
+		ProjectVersion projectVersion = projectVersionDAO.findByProjectVersion(project, currentVersion);
+		if (projectVersion == null) {
+			projectVersion = new ProjectVersion(project, currentVersion);
+			projectVersionDAO.persist(projectVersion);
+		}
+		ProjectVersionTruckFactor projectVersionTruckFactor = 
+				projectVersionTruckFactorDAO.findByProjectVersionTruckFactor(projectVersion, metric, null, TruckFactorType.CLASSICAL);
+		if (projectVersionTruckFactor == null) {
+			projectVersionTruckFactor = new ProjectVersionTruckFactor(projectVersion, topContributors, metric, null, TruckFactorType.CLASSICAL);
+			projectVersionTruckFactorDAO.persist(projectVersionTruckFactor);
 		}
 	}
 	
 	private static double getCoverage(List<Contributor> contributors, List<File> files, KnowledgeMetric metric) {
-		
 		int fileSize = files.size();
 		int numberFilesCovarage = 0;
 		for(File file: files) {
 			List<Contributor> experts = null;
 			if (metric.equals(KnowledgeMetric.DOA)) {
-				experts = doaUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+				experts = DoaUtils.getMantainersByFile(file, Constants.thresholdMantainer);
 			}else if(metric.equals(KnowledgeMetric.DOE)) {
-				experts = doeUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+				experts = DoeUtils.getMantainersByFile(file, Constants.thresholdMantainer);
 			}
 			forMaintainers:for(Contributor expert: experts) {
 				for(Contributor contributor: contributors) {

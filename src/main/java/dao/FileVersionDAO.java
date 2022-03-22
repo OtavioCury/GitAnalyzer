@@ -33,8 +33,8 @@ public class FileVersionDAO extends GenericDAO<FileVersion>{
 		q.setParameter("idFile", file.getId());
 		q.setParameter("idCommit", commit.getId());
 		try {
-			FileVersion FileVersion = (FileVersion) q.getSingleResult();
-			return FileVersion;
+			FileVersion fileVersion = (FileVersion) q.getSingleResult();
+			return fileVersion;
 		} catch (javax.persistence.NoResultException e) {
 			return null;
 		}

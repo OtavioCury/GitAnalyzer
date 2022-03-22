@@ -20,6 +20,9 @@
 		<class>model.FileRename</class>
 		<class>model.Project</class>
 		<class>model.ProjectConstants</class>
+		<class>model.ProjectVersion</class>
+		<class>model.ProjectVersionTruckFactor</class>
+		<class>model.Squad</class>
 
 		<properties>
 			<property name="javax.persistence.jdbc.driver"

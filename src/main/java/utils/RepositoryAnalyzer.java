@@ -20,9 +20,9 @@ public class RepositoryAnalyzer {
 	public static Repository repository;
 	public static HashMap<String, List<DiffEntry>> diffsCommits;
 	private static List<model.File> analyzedFiles;
+	private static CommitDAO commitDao = new CommitDAO();
 
 	public static Commit getCurrentCommit() {
-		CommitDAO commitDao = new CommitDAO();
 		return commitDao.findLastCommit();
 	}
 

@@ -5,8 +5,6 @@ import javax.persistence.Query;
 import model.AuthorBlame;
 import model.AuthorFile;
 import model.Commit;
-import model.Contributor;
-import model.File;
 
 public class AuthorBlameDAO extends GenericDAO<AuthorBlame>{
 

@@ -20,7 +20,8 @@ public class MainExtractor {
 		RepositoryAnalyzer.initRepository(projectName);
 //		extractFiles(project);
 //		extractCommits(project);
-		extractContributors(project);
+//		extractContributors(project);
+		extractSquads(project);
 //		extractFilesVersion(project);
 //		extractAuthorFile(project);
 //		extractFileGraph(project);
@@ -30,6 +31,11 @@ public class MainExtractor {
 		RepositoryAnalyzer.git.close();
 	}
 	
+	private static void extractSquads(Project project) {
+		SquadExtractor squadExtractor = new SquadExtractor(project);
+		squadExtractor.run();
+	}
+
 	private static void extractFilesVersion(Project project) {
 		FileVersionExtractor fileVersionAnalyzer = new FileVersionExtractor(project);
 		fileVersionAnalyzer.run();

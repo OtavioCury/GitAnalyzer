@@ -35,7 +35,6 @@ public class AuthorDoaExtractor {
 		ContributorsUtils contributorsUtils = new ContributorsUtils();
 		List<Contributor> contributors = contributorsUtils.activeContributors(project);
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
-		DoaUtils modelDOA = new DoaUtils(currentCommit);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
@@ -44,7 +43,7 @@ public class AuthorDoaExtractor {
 					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
 					if(authorDoaDAO.existsByAuthorVersion(authorFile, currentCommit) == false) {
 						AuthorDOA authorDOA = new AuthorDOA(authorFile, currentCommit, 
-								modelDOA.getContributorFileDOA(contributor, file));
+								DoaUtils.getContributorFileDOA(contributor, file));
 						authorDoaDAO.persist(authorDOA);
 					}
 				}

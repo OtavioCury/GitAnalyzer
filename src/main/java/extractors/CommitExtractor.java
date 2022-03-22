@@ -83,12 +83,12 @@ public class CommitExtractor {
 							committerName = commitsList.get(i).getCommitterIdent().getName();
 						}
 					}
-					Contributor author = contributorDao.findByNameEmail(authorName, authorEmail);
+					Contributor author = contributorDao.findByNameEmailProject(authorName, authorEmail, project);
 					if(author == null) {
 						author = new Contributor(authorName, authorEmail, project);
 						contributorDao.persist(author);
 					}
-					Contributor committer = contributorDao.findByNameEmail(committerName, committerEmail);
+					Contributor committer = contributorDao.findByNameEmailProject(committerName, committerEmail, project);
 					if(committer == null) {
 						committer = new Contributor(committerName, committerEmail, project);
 						contributorDao.persist(committer);

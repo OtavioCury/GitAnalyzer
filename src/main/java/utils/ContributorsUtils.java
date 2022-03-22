@@ -76,15 +76,12 @@ public class ContributorsUtils {
 
 	public void sortContributorsByMetric(List<Contributor> contributors, List<File> files, 
 			KnowledgeMetric metric) {
-		Commit commit = RepositoryAnalyzer.getCurrentCommit();
-		DoaUtils doaUtils = new DoaUtils(commit);
-		DoeUtils doeUtils = new DoeUtils(commit);
 		for (File file : files) {
 			List<Contributor> experts = null;
 			if (metric.equals(KnowledgeMetric.DOA)) {
-				experts = doaUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+				experts = DoaUtils.getMantainersByFile(file, Constants.thresholdMantainer);
 			}else if(metric.equals(KnowledgeMetric.DOE)){
-				experts = doeUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+				experts = DoeUtils.getMantainersByFile(file, Constants.thresholdMantainer);
 			}
 			for (Contributor expert: experts) {
 				for (Contributor contributor: contributors) {
@@ -98,15 +95,12 @@ public class ContributorsUtils {
 
 	public void sortContributorsByMetric(List<Contributor> contributors, 
 			LinkedHashMap<File, Double> filesValues, KnowledgeMetric metric) {
-		Commit commit = RepositoryAnalyzer.getCurrentCommit();
-		DoaUtils doaUtils = new DoaUtils(commit);
-		DoeUtils doeUtils = new DoeUtils(commit);
 		for(Map.Entry<File, Double> fileValue: filesValues.entrySet()) {
 			List<Contributor> experts = null;
 			if (metric.equals(KnowledgeMetric.DOA)) {
-				experts = doaUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
+				experts = DoaUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
 			}else if(metric.equals(KnowledgeMetric.DOE)){
-				experts = doeUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
+				experts = DoeUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
 			}
 			for (Contributor expert: experts) {
 				for (Contributor contributor: contributors) {

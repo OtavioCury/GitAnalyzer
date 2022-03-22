@@ -19,15 +19,10 @@ import model.Project;
 
 public class DoeUtils extends MetricsUtils{
 
-	private AuthorDoeDAO authorDoeDao = new AuthorDoeDAO();
-	private FileVersionDAO fileCommitDAO = new FileVersionDAO();
+	private static AuthorDoeDAO authorDoeDao = new AuthorDoeDAO();
+	private static FileVersionDAO fileCommitDAO = new FileVersionDAO();
 
-	public DoeUtils(Commit currentCommit) {
-		super();
-		this.currentCommit = currentCommit;
-	}
-
-	public double getDOE(int adds, int fa, int numDays, int size) {
+	public static double getDOE(int adds, int fa, int numDays, int size) {
 		double addsModel = Constants.addsCoefDoe*Math.log(adds + 1);
 		double faModel = Constants.faCoefDoe*fa;
 		double numDaysModel = Constants.numDaysCoefDoe*Math.log(numDays + 1);
@@ -36,16 +31,18 @@ public class DoeUtils extends MetricsUtils{
 				+ numDaysModel + sizeModel;
 	}
 
-	public double getContributorFileDOE(Contributor contributor, File file) {
+	public static double getContributorFileDOE(Contributor contributor, File file) {
 		return getDOE(getAdds(contributor, file), getFA(contributor, file),
 				getNumDays(contributor, file), getFileSize(file));	
 	}
 
-	private int getFileSize(File file) {
+	private static int getFileSize(File file) {
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		return fileCommitDAO.numberLinesFileVersion(file, currentCommit);
 	}
 
-	private int getAdds(Contributor contributor, File file) {
+	private static int getAdds(Contributor contributor, File file) {
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
 		contributors.add(contributor);
 		Set<File> files = getFilesRenames(file);
@@ -53,7 +50,8 @@ public class DoeUtils extends MetricsUtils{
 		return adds;
 	}
 
-	private int getNumDays(Contributor contributor, File file) {
+	private static int getNumDays(Contributor contributor, File file) {
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
 		contributors.add(contributor);
 		Set<File> files = getFilesRenames(file);
@@ -64,7 +62,8 @@ public class DoeUtils extends MetricsUtils{
 		return diffDays;
 	}
 
-	public List<Contributor> getMantainersByFile(File file, double threshold){
+	public static List<Contributor> getMantainersByFile(File file, double threshold){
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<Contributor> mantainers = new ArrayList<Contributor>();
 		List<AuthorDOE> does = authorDoeDao.findByFileVersion(file, currentCommit);
 		if(does != null && does.size() > 0) {
@@ -80,6 +79,7 @@ public class DoeUtils extends MetricsUtils{
 	}
 
 	public List<ContributorDTO> getMostKnowledgedByFile(String filePath, String projectName){
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		Project project = projectDAO.findByName(projectName);
 		File file = fileDAO.findByPath(filePath, project);
 		Set<File> files = getFilesRenames(file);

@@ -15,14 +15,13 @@ import model.File;
 
 public class MetricsUtils {
 
-	protected ContributorsUtils contributorsUtils = new ContributorsUtils();
-	protected Commit currentCommit;
-	protected CommitFileDAO commitFileDao = new CommitFileDAO();
-	protected FileDAO fileDAO = new FileDAO();
-	protected ProjectDAO projectDAO = new ProjectDAO();
-	protected FileRenameDAO fileRenameDAO = new FileRenameDAO();
+	protected static ContributorsUtils contributorsUtils = new ContributorsUtils();
+	protected static CommitFileDAO commitFileDao = new CommitFileDAO();
+	protected static FileDAO fileDAO = new FileDAO();
+	protected static ProjectDAO projectDAO = new ProjectDAO();
+	protected static FileRenameDAO fileRenameDAO = new FileRenameDAO();
 
-	public int getFA(Contributor contributor, File file) {
+	public static int getFA(Contributor contributor, File file) {
 		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
 		contributors.add(contributor);
 		Set<File> files = getFilesRenames(file);
@@ -32,7 +31,8 @@ public class MetricsUtils {
 		return 0;
 	}
 
-	public Set<File> getFilesRenames(File file){
+	public static Set<File> getFilesRenames(File file){
+		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		Set<File> files = new HashSet<File>();
 		files.add(file);
 		boolean flag = false;

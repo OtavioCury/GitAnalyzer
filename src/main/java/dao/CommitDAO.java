@@ -47,7 +47,7 @@ public class CommitDAO extends GenericDAO<Commit>{
 		Query q = em.createQuery(hql);
 		return q.getResultList();
 	}
-	
+
 	public List<Commit> commitsByAuthor(Contributor contributor){
 		String hql = "select c from Commit c where c.author.id=:authorId";
 		Query q = em.createQuery(hql);
@@ -63,10 +63,12 @@ public class CommitDAO extends GenericDAO<Commit>{
 		return exists;
 	}
 
-	public Date findLastCommitByContributor(Contributor contributor) {
-		String hql = "select max(c.date) from Commit c where c.author.id=:idContributor or c.commiter.id=:idContributor";
+	public Date findLastCommitByContributorUpToVersion(Contributor contributor, Commit currentVersion) {
+		String hql = "select max(c.date) from Commit c where "
+				+ "(c.author.id=:idContributor or c.commiter.id=:idContributor) and c.date <= :date";
 		Query q = em.createQuery(hql);
 		q.setParameter("idContributor", contributor.getId());
+		q.setParameter("date", currentVersion.getDate());
 		Date date = (Date) q.getSingleResult(); 
 		return date;
 	}
