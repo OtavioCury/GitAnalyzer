@@ -1,12 +1,17 @@
 package dao;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 
 import model.Commit;
+import model.Contributor;
 import model.File;
 import model.Project;
 
@@ -91,5 +96,16 @@ public class FileDAO extends GenericDAO<File>{
 		}
 		return fileChanges;
 	} 
+	
+	public Set<File> filesTouchedContributorsLastMonths(List<Contributor> contributors, Date date){
+		List<Long> idsContributos = contributors.stream().map(Contributor::getId).collect(Collectors.toList());
+		String hql = "select c.file from CommitFile c where c.commit.date >=:date and c.commit.author.id in (:idsContributors)";
+		Query q = em.createQuery(hql);
+		q.setParameter("date", date);
+		q.setParameter("idsContributors", idsContributos);
+		List<File> files = q.getResultList();
+		Set<File> filesSet = new HashSet<File>(files);
+		return filesSet;
+	}
 
 }

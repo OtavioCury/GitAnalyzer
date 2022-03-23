@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -29,12 +30,16 @@ import dao.FileVersionDAO;
 import dao.ProjectConstantsDAO;
 import enums.FileImportanceMetric;
 import model.Commit;
+import model.Contributor;
 import model.File;
 import model.FileVersion;
 import model.Project;
 import model.ProjectConstants;
+import model.Squad;
 
 public class FileUtils {
+	
+	private static FileDAO fileDAO = new FileDAO();
 
 	public static String returnFileExtension(String path) {
 		String extension = path.substring(path.lastIndexOf("/")+1);
@@ -254,5 +259,11 @@ public class FileUtils {
 			}
 		}
 		files.removeAll(removedFiles);
+	}
+
+	public static Set<File> squadFilesList(Squad squad) {
+		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
+		Set<File> files = fileDAO.filesTouchedContributorsLastMonths(squad.getMembers(), Constants.thresholdDateSquadTouchedFiles(currentVersion.getDate()));
+		return files;
 	}
 }

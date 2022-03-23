@@ -84,4 +84,11 @@ public class Constants {
 		c.add(Calendar.MONTH, -3);
 		return c.getTime();
 	}
+	
+	public static Date thresholdDateSquadTouchedFiles(Date currentCommitDate) {
+		Calendar c = Calendar.getInstance(); 
+		c.setTime(currentCommitDate); 
+		c.add(Calendar.MONTH, -3);
+		return c.getTime();
+	}
 }
