@@ -6,11 +6,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import dao.AuthorFileDAO;
 import dao.CommitFileDAO;
+import dao.ContributorDAO;
 import model.AuthorFile;
 import model.Contributor;
 import model.File;
 import model.Project;
-import utils.ContributorsUtils;
 import utils.RepositoryAnalyzer;
 
 public class AuthorFileExtractor {
@@ -25,8 +25,8 @@ public class AuthorFileExtractor {
 	public void runFirstAuthorAnalysis() throws GitAPIException {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
-		ContributorsUtils contributorsUtils = new ContributorsUtils();
-		List<Contributor> contributors = contributorsUtils.activeContributors(project);
+		ContributorDAO contributorDAO = new ContributorDAO();
+		List<Contributor> contributors = contributorDAO.findByProject(project);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {

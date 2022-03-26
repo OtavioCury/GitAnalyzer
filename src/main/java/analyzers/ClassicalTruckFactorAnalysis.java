@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import dao.ContributorDAO;
 import dao.ProjectVersionDAO;
 import dao.ProjectVersionTruckFactorDAO;
 import enums.KnowledgeMetric;
@@ -28,6 +29,7 @@ public class ClassicalTruckFactorAnalysis {
 	private static ContributorsUtils contributorsUtils = new ContributorsUtils();
 	
 	public static void main(String[] args) {
+		ContributorDAO contributorDAO = new ContributorDAO();
 		ProjectVersionDAO projectVersionDAO = new ProjectVersionDAO();
 		ProjectVersionTruckFactorDAO projectVersionTruckFactorDAO = new ProjectVersionTruckFactorDAO();
 		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
@@ -38,11 +40,11 @@ public class ClassicalTruckFactorAnalysis {
 		Project project = ProjectUtils.getProjectByName(projectName);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		
-		KnowledgeMetric metric = KnowledgeMetric.DOA;
+		KnowledgeMetric metric = KnowledgeMetric.DOE;
 		
 		System.out.println("=========== Analysis avelino's truckfactor "+metric.getName()+" ===========");
 		int tf = 0;
-		List<Contributor> contributors = contributorsUtils.activeContributors(project);
+		List<Contributor> contributors = contributorDAO.findByProject(project);
 		contributorsUtils.removeAlias(contributors);
 		contributorsUtils.sortContributorsByMetric(contributors, files, metric);
 		Collections.sort(contributors, new Comparator<Contributor>() {
@@ -76,6 +78,7 @@ public class ClassicalTruckFactorAnalysis {
 			projectVersionTruckFactor = new ProjectVersionTruckFactor(projectVersion, topContributors, metric, null, TruckFactorType.CLASSICAL);
 			projectVersionTruckFactorDAO.persist(projectVersionTruckFactor);
 		}
+		System.out.println("================ End of Analysis ===========");
 	}
 	
 	private static double getCoverage(List<Contributor> contributors, List<File> files, KnowledgeMetric metric) {

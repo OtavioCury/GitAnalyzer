@@ -71,13 +71,6 @@ public class Constants {
 		put("infoway:", "template/WEB-INF/tags/");
 	}};
 
-	public static Date analisysDate() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(2015, 12, 31, 59, 59, 59);
-		Date date = calendar.getTime();
-		return date;
-	}
-
 	public static Date thresholdDateDisable(Date currentCommitDate) {
 		Calendar c = Calendar.getInstance(); 
 		c.setTime(currentCommitDate); 

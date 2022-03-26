@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import dao.AuthorDoaDAO;
 import dao.AuthorFileDAO;
 import dao.CommitFileDAO;
+import dao.ContributorDAO;
 import dao.FileVersionDAO;
 import model.AuthorDOA;
 import model.AuthorFile;
@@ -14,7 +15,6 @@ import model.Commit;
 import model.Contributor;
 import model.File;
 import model.Project;
-import utils.ContributorsUtils;
 import utils.DoaUtils;
 import utils.RepositoryAnalyzer;
 
@@ -32,8 +32,8 @@ public class AuthorDoaExtractor {
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorDoaDAO authorDoaDAO = new AuthorDoaDAO();
 		FileVersionDAO FileVersionDAO = new FileVersionDAO();
-		ContributorsUtils contributorsUtils = new ContributorsUtils();
-		List<Contributor> contributors = contributorsUtils.activeContributors(project);
+		ContributorDAO contributorDAO = new ContributorDAO();
+		List<Contributor> contributors = contributorDAO.findByProject(project);
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {

@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import dao.ContributorDAO;
 import dao.ProjectVersionDAO;
 import dao.ProjectVersionTruckFactorDAO;
 import enums.FileImportanceMetric;
@@ -32,6 +33,7 @@ public class FileImportanceAwareTruckFactor {
 	private static ContributorsUtils contributorsUtils = new ContributorsUtils();
 	
 	public static void main(String[] args) {
+		ContributorDAO contributorDAO = new ContributorDAO();
 		ProjectVersionDAO projectVersionDAO = new ProjectVersionDAO();
 		ProjectVersionTruckFactorDAO projectVersionTruckFactorDAO = new ProjectVersionTruckFactorDAO();
 		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
@@ -43,14 +45,14 @@ public class FileImportanceAwareTruckFactor {
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		
 		KnowledgeMetric metric = KnowledgeMetric.DOE;
-		FileImportanceMetric fileImportanceMetric = FileImportanceMetric.COMMITS;
+		FileImportanceMetric fileImportanceMetric = FileImportanceMetric.SIZE;
 		
 		System.out.println("=========== File importance aware truckfactor "+metric.getName()+" and "+fileImportanceMetric.getName()+"===========");
 		int tf = 0;
-		List<Contributor> contributors = contributorsUtils.activeContributors(project);
-		contributorsUtils.removeAlias(contributors);
 		LinkedHashMap<File, Double> fileValue = FileUtils.filesValues(project, 
 				files, fileImportanceMetric);
+		List<Contributor> contributors = contributorDAO.findByProject(project);
+		contributorsUtils.removeAlias(contributors);
 		contributorsUtils.sortContributorsByMetric(contributors, fileValue, metric);
 		Collections.sort(contributors, new Comparator<Contributor>() {
 		    @Override
@@ -84,6 +86,7 @@ public class FileImportanceAwareTruckFactor {
 			projectVersionTruckFactor = new ProjectVersionTruckFactor(projectVersion, topContributors, metric, fileImportanceMetric, TruckFactorType.FILE_IMPORTANCE_AWARE);
 			projectVersionTruckFactorDAO.persist(projectVersionTruckFactor);
 		}
+		System.out.println("================ End of Analysis ===========");
 	}
 	
 	private static double getCoverageFileImportance(List<Contributor> contributors, LinkedHashMap<File, Double> filesValues, KnowledgeMetric metric) {

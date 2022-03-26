@@ -18,19 +18,19 @@ public class MainExtractor {
 		ProjectDAO projectDao = new ProjectDAO();
 		Project project = projectDao.findByName(projectName);
 		RepositoryAnalyzer.initRepository(projectName);
-//		extractFiles(project);
-//		extractCommits(project);
-//		extractContributors(project);
+		extractFiles(project);
+		extractCommits(project);
+		extractContributors(project);
 		extractSquads(project);
-//		extractFilesVersion(project);
-//		extractAuthorFile(project);
-//		extractFileGraph(project);
-//		extractDoe(project);
-//		extractDoa(project);
+		extractFilesVersion(project);
+		extractAuthorFile(project);
+		extractFileGraph(project);
+		extractDoe(project);
+		extractDoa(project);
 		System.out.println("================ End of Analysis ===========");
 		RepositoryAnalyzer.git.close();
 	}
-	
+
 	private static void extractSquads(Project project) {
 		SquadExtractor squadExtractor = new SquadExtractor(project);
 		squadExtractor.run();
