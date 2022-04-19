@@ -34,6 +34,12 @@ public class Contributor {
 		this.email = email;
 		this.project = project;
 	}
+	
+	public Contributor(String name, String email) {
+		super();
+		this.name = name;
+		this.email = email;
+	}
 
 	public Contributor() {
 	}

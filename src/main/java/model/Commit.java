@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 @Entity
 public class Commit {
@@ -24,6 +25,9 @@ public class Commit {
     private List<String> parentsIds;
 	private Date date;
 	private String externalId;
+	
+	@Transient
+	private List<CommitFile> commitFiles;
 	
 	public Commit(Contributor author, Contributor commiter, Date date, String externalId, List<String> parentsIds) {
 		super();
@@ -83,6 +87,14 @@ public class Commit {
 
 	public void setCommiter(Contributor commiter) {
 		this.commiter = commiter;
+	}
+
+	public List<CommitFile> getCommitFiles() {
+		return commitFiles;
+	}
+
+	public void setCommitFiles(List<CommitFile> commitFiles) {
+		this.commitFiles = commitFiles;
 	}
 	
 }
