@@ -1,26 +1,27 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
 import dao.ContributorDAO;
-import dao.ContributorVersionDAO;
 import enums.KnowledgeMetric;
-import model.Commit;
 import model.Contributor;
 import model.File;
-import model.Project;
 
 public class ContributorsUtils {
 
 	private ContributorDAO contributorDAO = new ContributorDAO();
+	private DoaUtils doaUtils = new DoaUtils();
+	private DoeUtils doeUtils = new DoeUtils();
 
-	public List<Contributor> getAlias(Contributor contributor){
-		List<Contributor> alias = new ArrayList<Contributor>();
+	public void setAlias(Contributor contributor){
+		Set<Contributor> alias = new HashSet<Contributor>();
 		List<Contributor> contributors = contributorDAO.findAll(Contributor.class);
 		for(Contributor contributorAux: contributors) {
 			if(contributorAux.getId().equals(contributor.getId()) == false) {
@@ -38,29 +39,31 @@ public class ContributorsUtils {
 				}
 			}
 		}
-		return alias;
+		contributor.setAlias(alias);
+		aliasIhealth(contributor);
 	}
 
-	public List<Contributor> activeContributors(Project project){
-		ContributorDAO contributorDAO = new ContributorDAO();
-		ContributorVersionDAO contributorVesionDAO = new ContributorVersionDAO();
-		List<Contributor> contributors = contributorDAO.findByProject(project);
-		List<Contributor> contributorsExcluded = new ArrayList<Contributor>();
-		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
-		for(Contributor contributor: contributors) {
-			if(contributorVesionDAO.disabledContributorVersion(contributor, currentVersion)) {
-				contributorsExcluded.add(contributor);
+	private void aliasIhealth(Contributor contributor) {
+		if (contributor.getProject().getName().toUpperCase().contains("IHEALTH")) {
+			if (contributor.getName().toUpperCase().contains("JARDIEL")) {
+				List<Contributor> contributors = contributorDAO.findByNameProject("jardiel", contributor.getProject());
+				contributors.addAll(contributorDAO.findByNameProject("Jardiel", contributor.getProject()));
+				Set<Contributor> alias = new HashSet<Contributor>();
+				for (Contributor contributorAux : contributors) {
+					if (contributorAux.getId().equals(contributor.getId()) == false) {
+						alias.add(contributorAux);
+					}
+				}
+				contributor.setAlias(alias);
 			}
 		}
-		contributors.removeAll(contributorsExcluded);
-		return contributors;
 	}
 
 	public void removeAlias(List<Contributor> contributors){
 		List<Contributor> removed = new ArrayList<Contributor>();
 		for(Contributor contributor: contributors) {
 			if(removed.contains(contributor) == false) {
-				List<Contributor> aliases = getAlias(contributor);
+				Set<Contributor> aliases = contributor.getAlias();
 				for(Contributor alias: aliases) {
 					for(Contributor contributorAux: contributors) {
 						if(contributorAux.getId().equals(contributor.getId()) == false
@@ -79,14 +82,19 @@ public class ContributorsUtils {
 		for (File file : files) {
 			List<Contributor> experts = null;
 			if (metric.equals(KnowledgeMetric.DOA)) {
-				experts = DoaUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+				experts = doaUtils.getMantainersByFile(file);
 			}else if(metric.equals(KnowledgeMetric.DOE)){
-				experts = DoeUtils.getMantainersByFile(file, Constants.thresholdMantainer);
+				experts = doeUtils.getMantainersByFile(file);
 			}
 			for (Contributor expert: experts) {
-				for (Contributor contributor: contributors) {
-					if (expert.getId().equals(contributor.getId())) {
-						contributor.setNumberFilesAuthor(contributor.getNumberFilesAuthor()+1);
+				forMaintainers:for (Contributor contributor : contributors) {
+					Set<Contributor> contributorsAlias = contributor.getAlias();
+					contributorsAlias.add(contributor);
+					for (Contributor alias : contributorsAlias) {
+						if (expert.getId().equals(alias.getId())) {
+							contributor.setNumberFilesAuthor(contributor.getNumberFilesAuthor()+1);
+							break forMaintainers;
+						}
 					}
 				}
 			}
@@ -98,14 +106,19 @@ public class ContributorsUtils {
 		for(Map.Entry<File, Double> fileValue: filesValues.entrySet()) {
 			List<Contributor> experts = null;
 			if (metric.equals(KnowledgeMetric.DOA)) {
-				experts = DoaUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
+				experts = doaUtils.getMantainersByFile(fileValue.getKey());
 			}else if(metric.equals(KnowledgeMetric.DOE)){
-				experts = DoeUtils.getMantainersByFile(fileValue.getKey(), Constants.thresholdMantainer);
+				experts = doeUtils.getMantainersByFile(fileValue.getKey());
 			}
 			for (Contributor expert: experts) {
-				for (Contributor contributor: contributors) {
-					if (expert.getId().equals(contributor.getId())) {
-						contributor.setSumFileImportance(contributor.getSumFileImportance()+fileValue.getValue());
+				forMaintainers:for (Contributor contributor : contributors) {
+					Set<Contributor> contributorsAlias = contributor.getAlias();
+					contributorsAlias.add(contributor);
+					for (Contributor alias : contributorsAlias) {
+						if (expert.getId().equals(alias.getId())) {
+							contributor.setSumFileImportance(contributor.getSumFileImportance()+fileValue.getValue());
+							break forMaintainers;
+						}
 					}
 				}
 			}

@@ -8,6 +8,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
@@ -17,14 +18,16 @@ import enums.TruckFactorType;
 
 @Entity
 public class ProjectVersionTruckFactor {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne
 	private ProjectVersion projectVersion;
-	@ManyToMany
+	@ManyToMany @JoinTable(name = "projectversiontruckfactor_topcontributors")
 	private List<Contributor> topContributors;
+	@ManyToMany @JoinTable(name = "projectversiontruckfactor_abandonedfiles")
+	private List<File> abandonedFiles;
 	private int truckFactor;
 	@Enumerated(EnumType.STRING)
 	private KnowledgeMetric knowledgeMetric;
@@ -35,8 +38,9 @@ public class ProjectVersionTruckFactor {
 
 	public ProjectVersionTruckFactor(ProjectVersion projectVersion, List<Contributor> topContributors,
 			KnowledgeMetric knowledgeMetric, FileImportanceMetric fileImportanceMetric,
-			TruckFactorType truckFactorType) {
+			TruckFactorType truckFactorType, List<File> abandonedFiles) {
 		super();
+		this.abandonedFiles = abandonedFiles;
 		this.projectVersion = projectVersion;
 		this.topContributors = topContributors;
 		truckFactor = topContributors.size();
@@ -88,5 +92,11 @@ public class ProjectVersionTruckFactor {
 	}
 	public void setTruckFactor(int truckFactor) {
 		this.truckFactor = truckFactor;
+	}
+	public List<File> getAbandonedFiles() {
+		return abandonedFiles;
+	}
+	public void setAbandonedFiles(List<File> abandonedFiles) {
+		this.abandonedFiles = abandonedFiles;
 	}
 }

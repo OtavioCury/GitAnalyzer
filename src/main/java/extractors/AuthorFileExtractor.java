@@ -5,7 +5,7 @@ import java.util.List;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import dao.AuthorFileDAO;
-import dao.CommitFileDAO;
+import dao.CommitDAO;
 import dao.ContributorDAO;
 import model.AuthorFile;
 import model.Contributor;
@@ -23,16 +23,16 @@ public class AuthorFileExtractor {
 	}
 
 	public void runFirstAuthorAnalysis() throws GitAPIException {
-		CommitFileDAO commitFileDao = new CommitFileDAO();
+		CommitDAO commitDao = new CommitDAO();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		ContributorDAO contributorDAO = new ContributorDAO();
-		List<Contributor> contributors = contributorDAO.findByProject(project);
+		List<Contributor> contributors = contributorDAO.findByProjectDevs(project);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
-				if(commitFileDao.existsByAuthorFile(contributor, file) == true) {
-					if(authorFileDao.existsByAuthorFile(contributor, file) == false) {
-						boolean firstAuthor = commitFileDao.findByAuthorFileAdd(contributor, file);
+				if(authorFileDao.existsByAuthorFile(contributor, file) == false) {
+					if(commitDao.existsByAuthorFile(contributor, file) == true) {
+						boolean firstAuthor = commitDao.findByAuthorFileAdd(contributor, file);
 						AuthorFile authorFile = new AuthorFile(contributor, file, firstAuthor);
 						authorFileDao.persist(authorFile);
 					}

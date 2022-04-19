@@ -1,5 +1,7 @@
 package model;
 
+import java.util.Set;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,12 +19,15 @@ public class Contributor {
 	private String email;
 	@ManyToOne
 	private Project project;
+	private boolean isNotDev;
 	
 	@Transient
 	private int numberFilesAuthor;
 	@Transient
 	private double sumFileImportance;
-
+	@Transient
+	private Set<Contributor> alias;
+	
 	public Contributor(String name, String email, Project project) {
 		super();
 		this.name = name;
@@ -79,5 +84,21 @@ public class Contributor {
 
 	public void setSumFileImportance(double sumFileImportance) {
 		this.sumFileImportance = sumFileImportance;
+	}
+
+	public boolean isNotDev() {
+		return isNotDev;
+	}
+
+	public void setNotDev(boolean isNotDev) {
+		this.isNotDev = isNotDev;
+	}
+
+	public Set<Contributor> getAlias() {
+		return alias;
+	}
+
+	public void setAlias(Set<Contributor> alias) {
+		this.alias = alias;
 	}
 }

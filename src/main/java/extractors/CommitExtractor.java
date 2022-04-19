@@ -132,9 +132,8 @@ public class CommitExtractor {
 					}else {
 						file = oldFile;
 					}
-					CommitFile commitFile = commitFileDao.findByCommitFile(commit.getExternalId(), file.getPath());
-					if(commitFile == null) {
-						commitFile = new CommitFile();
+					if(commitFileDao.existsByCommitFile(commit.getExternalId(), file.getPath()) == false) {
+						CommitFile commitFile = new CommitFile();
 						if(diff.getChangeType().name().equals(Constants.ADD)){
 							commitFile.setOperation(enums.OperationType.ADD);
 						}else if(diff.getChangeType().name().equals(Constants.DELETE)){

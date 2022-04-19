@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import dao.CommitFileDAO;
+import dao.CommitDAO;
 import dao.FileDAO;
 import dao.FileRenameDAO;
 import dao.ProjectDAO;
@@ -15,23 +15,20 @@ import model.File;
 
 public class MetricsUtils {
 
-	protected static ContributorsUtils contributorsUtils = new ContributorsUtils();
-	protected static CommitFileDAO commitFileDao = new CommitFileDAO();
-	protected static FileDAO fileDAO = new FileDAO();
-	protected static ProjectDAO projectDAO = new ProjectDAO();
-	protected static FileRenameDAO fileRenameDAO = new FileRenameDAO();
+	protected FileDAO fileDAO = new FileDAO();
+	protected ProjectDAO projectDAO = new ProjectDAO();
+	protected FileRenameDAO fileRenameDAO = new FileRenameDAO();
+	protected CommitDAO commitDAO = new CommitDAO();
 
-	public static int getFA(Contributor contributor, File file) {
-		List<Contributor> contributors = contributorsUtils.getAlias(contributor);
-		contributors.add(contributor);
+	public int getFA(Contributor contributor, File file) {
 		Set<File> files = getFilesRenames(file);
-		if(commitFileDao.findByAuthorsFileAdd(contributors, files)) {
+		if(commitDAO.findByAuthorsFileAdd(contributorAndAliasIds(contributor), fileAndRenamesIds(files))) {
 			return 1;
 		}
 		return 0;
 	}
 
-	public static Set<File> getFilesRenames(File file){
+	public Set<File> getFilesRenames(File file){
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		Set<File> files = new HashSet<File>();
 		files.add(file);
@@ -60,4 +57,20 @@ public class MetricsUtils {
 		return files;
 	}
 
+	protected Set<Long> contributorAndAliasIds(Contributor contributor){
+		Set<Long> ids = new HashSet<Long>();
+		ids.add(contributor.getId());
+		for (Contributor alias: contributor.getAlias()) {
+			ids.add(alias.getId());
+		}
+		return ids;
+	}
+
+	protected Set<Long> fileAndRenamesIds(Set<File> files){
+		Set<Long> ids = new HashSet<Long>();
+		for (File file: files) {
+			ids.add(file.getId());
+		}
+		return ids;
+	}
 }

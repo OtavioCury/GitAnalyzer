@@ -45,9 +45,25 @@ public class ContributorDAO extends GenericDAO<Contributor>{
 			return null;
 		}
 	}
+	
+	public List<Contributor> findByNameProject(String name, Project project) {
+		String hql = "select c from Contributor c where c.name like :name and c.project.id=:idProject";
+		Query q = em.createQuery(hql);
+		q.setParameter("name", "%"+name+"%");
+		q.setParameter("idProject", project.getId());
+		List<Contributor> contributors = q.getResultList();
+		return contributors;
+	}
 
 	public List<Contributor> findByProject(Project project){
 		String hql = "select c from Contributor c where c.project.id=:idProject";
+		Query q = em.createQuery(hql);
+		q.setParameter("idProject", project.getId());
+		return q.getResultList();
+	}
+
+	public List<Contributor> findByProjectDevs(Project project){
+		String hql = "select c from Contributor c where c.project.id=:idProject and c.isNotDev=false";
 		Query q = em.createQuery(hql);
 		q.setParameter("idProject", project.getId());
 		return q.getResultList();

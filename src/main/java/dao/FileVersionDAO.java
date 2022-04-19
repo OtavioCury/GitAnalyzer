@@ -26,6 +26,15 @@ public class FileVersionDAO extends GenericDAO<FileVersion>{
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;
 	}
+	
+	public boolean existsByFileVersionNumberLines(File file, Commit commit) {
+		Query q = em.createQuery("select count(id) from FileVersion f "
+				+ "where f.file.id=:idFile and f.version.id=:idCommit and f.numberLines > 0");
+		q.setParameter("idFile", file.getId());
+		q.setParameter("idCommit", commit.getId());
+		boolean exists = (Long) q.getSingleResult() > 0;
+		return exists;
+	}
 
 	public FileVersion findByFileVersion(File file, Commit commit) {
 		Query q = em.createQuery("select f from FileVersion f "

@@ -7,39 +7,38 @@ import java.util.Map;
 import dao.CommitDAO;
 import dao.CommitFileDAO;
 import dao.ContributorDAO;
-import dao.ContributorVersionDAO;
 import model.Commit;
 import model.CommitFile;
 import model.Contributor;
-import model.ContributorVersion;
 import model.File;
-import utils.Constants;
-import utils.RepositoryAnalyzer;
+import model.Project;
 
 public class ContributorExtractor {
-	
+
 	private CommitDAO commitDAO = new CommitDAO();
 	private CommitFileDAO commitFileDAO = new CommitFileDAO();
+	private ContributorDAO contributorDao = new ContributorDAO();
+	private Project project;
+
+	public ContributorExtractor(Project project) {
+		super();
+		this.project = project;
+	}
 
 	public void run() {
-		CommitDAO commitDAO = new CommitDAO();
-		ContributorDAO authorDao = new ContributorDAO();
-		ContributorVersionDAO contributorVersionDAO = new ContributorVersionDAO();
-		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
-		List<Contributor> contributors = authorDao.findAll(Contributor.class);
+		List<Contributor> contributors = contributorDao.findAll(Contributor.class);
 		for(Contributor contributor: contributors) {
-			if(contributorVersionDAO.existsContributorVersion(contributor, currentVersion) == false) {
-				ContributorVersion contributorVersion = new ContributorVersion(contributor, currentVersion); 
-				if(commitDAO.findLastCommitByContributorUpToVersion(contributor, currentVersion).before(Constants.thresholdDateDisable(currentVersion.getDate()))
-						|| isNotADev(contributor)) {
-					contributorVersion.setDisabled(true);
-				}
-				contributorVersionDAO.persist(contributorVersion);
+			if(isNotADev(contributor)) {
+				contributor.setNotDev(true);
 			}
+			contributorDao.merge(contributor);
 		}
 	}
 
 	private boolean isNotADev(Contributor contributor) {
+		if (contributor.getEmail().equals("f.bruno.rocha@gmail.com")) {
+			return true;
+		}
 		List<Commit> commits = commitDAO.commitsByAuthor(contributor);
 		int commitsNumber = commits.size(); 
 		HashMap<Long, Integer> fileCommits = new HashMap<Long, Integer>();

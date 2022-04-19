@@ -6,7 +6,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import dao.AuthorDoeDAO;
 import dao.AuthorFileDAO;
-import dao.CommitFileDAO;
 import dao.ContributorDAO;
 import dao.FileVersionDAO;
 import model.AuthorDOE;
@@ -15,12 +14,14 @@ import model.Commit;
 import model.Contributor;
 import model.File;
 import model.Project;
+import utils.ContributorsUtils;
 import utils.DoeUtils;
 import utils.RepositoryAnalyzer;
 
 public class AuthorDoeExtractor {
 
 	private Project project;
+	private AuthorFileDAO authorFileDao = new AuthorFileDAO();
 
 	public AuthorDoeExtractor(Project project) {
 		super();
@@ -28,24 +29,25 @@ public class AuthorDoeExtractor {
 	}
 
 	public void runDOEAnalysis() throws GitAPIException {
-		CommitFileDAO commitFileDao = new CommitFileDAO();
-		AuthorFileDAO authorFileDao = new AuthorFileDAO();
+		DoeUtils doeUtils = new DoeUtils();
+		ContributorsUtils contributorsUtils = new ContributorsUtils();
 		AuthorDoeDAO authorDoeDAO = new AuthorDoeDAO();
-		FileVersionDAO FileVersionDAO = new FileVersionDAO();
+		FileVersionDAO fileVersionDAO = new FileVersionDAO();
 		ContributorDAO contributorDAO = new ContributorDAO();
-		List<Contributor> contributors = contributorDAO.findByProject(project);
+		List<Contributor> contributors = contributorDAO.findByProjectDevs(project);
+		for (Contributor contributor : contributors) {
+			contributorsUtils.setAlias(contributor);
+		}
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
-				if(FileVersionDAO.existsByFileVersion(file, currentCommit) == true &&
-						commitFileDao.existsByAuthorFile(contributor, file) == true) {
-					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
-					if(authorDoeDAO.existsByAuthorVersion(authorFile, currentCommit) == false) {
-						AuthorDOE authorDOE = new AuthorDOE(authorFile, currentCommit, 
-								DoeUtils.getContributorFileDOE(contributor, file));
-						authorDoeDAO.persist(authorDOE);
-					}
+				AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
+				if(authorFile != null && authorDoeDAO.existsByAuthorVersion(authorFile, currentCommit) == false 
+						&& fileVersionDAO.existsByFileVersionNumberLines(file, currentCommit) == true) {
+					AuthorDOE authorDOE = new AuthorDOE(authorFile, currentCommit, 
+							doeUtils.getContributorFileDOE(contributor, file));
+					authorDoeDAO.persist(authorDOE);
 				}
 			}
 		}

@@ -1,10 +1,12 @@
 package analyzers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import dao.ProjectVersionDAO;
 import dao.SquadDAO;
+import enums.KnowledgeMetric;
 import extractors.ProjectExtractor;
 import model.Commit;
 import model.File;
@@ -35,6 +37,8 @@ public class TruckFactorSquadAnalysis {
 		List<Squad> squads = squadDAO.listByProjectVersion(projectVersion);
 		for (Squad squad : squads) {
 			Set<File> files = FileUtils.squadFilesList(squad);
+			List<File> filesList = new ArrayList<File>(files);
+			//ClassicalTruckFactorAnalysis.run(filesList, KnowledgeMetric.DOA, project, squad.getMembers());
 			System.out.println();
 		}
 	}

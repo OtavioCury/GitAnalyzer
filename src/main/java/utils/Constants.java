@@ -12,7 +12,7 @@ public class Constants {
 	public static String absPath = "/home/otavio/Desktop/GitAnalyzer/projetos/ihealth/";
 
 	public static List<String> invalidPaths = Arrays.asList(new String[]{"/dev/null"});
-
+	
 	/**
 	 * DOE coefficients
 	 */
@@ -63,8 +63,10 @@ public class Constants {
 	public static final String ATTRIBUTE = new String("attribute");
 	public static final String TYPE = new String("type");
 
-	public static final double thresholdMantainer = 0.75;
-
+	public static final double normalizedThresholdMantainerDOA = 0.75;
+	public static final double normalizedThresholdMantainerDOE = 0.7;
+	public static final double thresholdMantainerDOA = 3.293;
+	
 	public static final int quantKnowledgedDevsByFile = 3;
 	
 	public static final Map<String, String> tagsPathIHealth = new HashMap<String, String>(){{

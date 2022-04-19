@@ -25,11 +25,11 @@ public class FileVersionExtractor {
 	}
 
 	public void run() {
-		FileVersionDAO FileVersionDAO = new FileVersionDAO(); 
+		FileVersionDAO fileVersionDAO = new FileVersionDAO(); 
 		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (model.File file : files) {
-			if(FileVersionDAO.existsByFileVersion(file, currentVersion) == false) {
+			if(fileVersionDAO.existsByFileVersion(file, currentVersion) == false) {
 				try {
 					BlameCommand blameCommand = new BlameCommand(RepositoryAnalyzer.repository);
 					blameCommand.setTextComparator(RawTextComparator.WS_IGNORE_ALL);
@@ -38,7 +38,7 @@ public class FileVersionExtractor {
 					RawText rawText = blameResult.getResultContents();
 					int fileSize = rawText.size();
 					FileVersion FileVersion = new FileVersion(file, currentVersion, fileSize);
-					FileVersionDAO.persist(FileVersion);
+					fileVersionDAO.persist(FileVersion);
 				} catch (GitAPIException | java.lang.NullPointerException e) {
 					e.printStackTrace();
 				}

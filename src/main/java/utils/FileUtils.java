@@ -30,7 +30,6 @@ import dao.FileVersionDAO;
 import dao.ProjectConstantsDAO;
 import enums.FileImportanceMetric;
 import model.Commit;
-import model.Contributor;
 import model.File;
 import model.FileVersion;
 import model.Project;
@@ -117,11 +116,10 @@ public class FileUtils {
 			return filesSizeValues(project, files);
 		}else if(fileImportanceMetric.equals(FileImportanceMetric.COMMITS)) {
 			return filesCommitValues(project, files);
-		}else if(fileImportanceMetric.equals(FileImportanceMetric.BETWEENNESS_CENTRALITY)) {
-			return filesBetweennessCentralityValues(project, files);
 		}else if(fileImportanceMetric.equals(FileImportanceMetric.DEGREE_IN_OUT)) {
 			return filesDegreeValues(project, files);
-		}
+		}//else if(fileImportanceMetric.equals(FileImportanceMetric.BETWEENNESS_CENTRALITY)) {
+		//return filesBetweennessCentralityValues(project, files);
 		return null;
 	}
 

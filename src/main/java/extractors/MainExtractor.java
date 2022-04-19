@@ -14,19 +14,27 @@ public class MainExtractor {
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
 		ProjectExtractor.init(args[0]);
 		String projectName = ProjectExtractor.extractProjectName(args[0]);
-		System.out.println("================ Analyzing "+projectName+"============");
+		System.out.println("================ Extracting "+projectName+"============");
 		ProjectDAO projectDao = new ProjectDAO();
 		Project project = projectDao.findByName(projectName);
 		RepositoryAnalyzer.initRepository(projectName);
-		extractFiles(project);
-		extractCommits(project);
-		extractContributors(project);
-		extractSquads(project);
-		extractFilesVersion(project);
-		extractAuthorFile(project);
-		extractFileGraph(project);
-		extractDoe(project);
-		extractDoa(project);
+		System.out.println("=========== Extracting files =======");
+//		extractFiles(project);
+		System.out.println("=========== Extracting commits =======");
+//		extractCommits(project);
+		System.out.println("=========== Extracting contributors =======");
+//		extractContributors(project);
+//		extractSquads(project);
+		System.out.println("=========== Extracting files versions =======");
+//		extractFilesVersion(project);
+		System.out.println("=========== Extracting author files =======");
+//		extractAuthorFile(project);
+		System.out.println("=========== Extracting files references =======");
+//		extractFileGraph(project);
+		System.out.println("=========== Extracting DOEs =======");
+//		extractDoe(project);
+		System.out.println("=========== Extracting DOAs =======");
+//		extractDoa(project);
 		System.out.println("================ End of Analysis ===========");
 		RepositoryAnalyzer.git.close();
 	}
@@ -74,7 +82,7 @@ public class MainExtractor {
 	}
 
 	private static void extractContributors(Project project) {
-		ContributorExtractor contributorAnalyzer = new ContributorExtractor();
+		ContributorExtractor contributorAnalyzer = new ContributorExtractor(project);
 		contributorAnalyzer.run();
 	}
 

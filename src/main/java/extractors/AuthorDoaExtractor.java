@@ -6,15 +6,14 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 
 import dao.AuthorDoaDAO;
 import dao.AuthorFileDAO;
-import dao.CommitFileDAO;
 import dao.ContributorDAO;
-import dao.FileVersionDAO;
 import model.AuthorDOA;
 import model.AuthorFile;
 import model.Commit;
 import model.Contributor;
 import model.File;
 import model.Project;
+import utils.ContributorsUtils;
 import utils.DoaUtils;
 import utils.RepositoryAnalyzer;
 
@@ -28,24 +27,25 @@ public class AuthorDoaExtractor {
 	}
 
 	public void runDOAAnalysis() throws GitAPIException {
-		CommitFileDAO commitFileDao = new CommitFileDAO();
+		DoaUtils doaUtils = new DoaUtils();
+		ContributorsUtils contributorsUtils = new ContributorsUtils();
 		AuthorFileDAO authorFileDao = new AuthorFileDAO();
 		AuthorDoaDAO authorDoaDAO = new AuthorDoaDAO();
-		FileVersionDAO FileVersionDAO = new FileVersionDAO();
 		ContributorDAO contributorDAO = new ContributorDAO();
-		List<Contributor> contributors = contributorDAO.findByProject(project);
+		List<Contributor> contributors = contributorDAO.findByProjectDevs(project);
+		for (Contributor contributor : contributors) {
+			contributorsUtils.setAlias(contributor);
+		}
 		Commit currentCommit = RepositoryAnalyzer.getCurrentCommit();
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);
 		for (Contributor contributor : contributors) {
 			for (model.File file : files) {
-				if(FileVersionDAO.existsByFileVersion(file, currentCommit) == true && 
-						commitFileDao.existsByAuthorFile(contributor, file) == true) {
-					AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
-					if(authorDoaDAO.existsByAuthorVersion(authorFile, currentCommit) == false) {
-						AuthorDOA authorDOA = new AuthorDOA(authorFile, currentCommit, 
-								DoaUtils.getContributorFileDOA(contributor, file));
-						authorDoaDAO.persist(authorDOA);
-					}
+				AuthorFile authorFile = authorFileDao.findByAuthorFile(contributor, file);
+				if(authorFile != null && 
+						authorDoaDAO.existsByAuthorVersion(authorFile, currentCommit) == false) {
+					AuthorDOA authorDOA = new AuthorDOA(authorFile, currentCommit, 
+							doaUtils.getContributorFileDOA(contributor, file));
+					authorDoaDAO.persist(authorDOA);
 				}
 			}
 		}

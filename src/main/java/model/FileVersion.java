@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
@@ -20,7 +21,7 @@ public class FileVersion {
 	@ManyToOne
 	private Commit version;
 	private int numberLines;
-	@ManyToMany
+	@ManyToMany @JoinTable(name="file_references")
 	private List<File> filesReferencesGraphOut;
 	
 	public FileVersion(File file, Commit version, int numberLines) {
