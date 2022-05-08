@@ -10,6 +10,7 @@ import enums.OperationType;
 import model.Commit;
 import model.Contributor;
 import model.File;
+import model.Project;
 
 public class CommitDAO extends GenericDAO<Commit>{
 
@@ -128,10 +129,11 @@ public class CommitDAO extends GenericDAO<Commit>{
 		return q.getResultList();
 	}
 
-	public boolean findByIdExists(String id) {
-		String hql = "select count(id) from Commit c where c.externalId=:id";
+	public boolean findByIdExistsByProject(String id, Project project) {
+		String hql = "select count(id) from Commit c where c.externalId=:id and c.project.id = :idProject";
 		Query q = em.createQuery(hql);
 		q.setParameter("id", id);
+		q.setParameter("idProject", project.getId());
 		boolean exists = (Long) q.getSingleResult() > 0;
 		return exists;
 	}

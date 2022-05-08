@@ -9,7 +9,7 @@ import javax.persistence.Transient;
 
 @Entity
 public class File {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -17,7 +17,7 @@ public class File {
 	@ManyToOne
 	private Project project;
 	private String extension;
-	
+
 	@Transient
 	private String content;
 	@Transient
@@ -28,14 +28,19 @@ public class File {
 	private int degreeReferences;
 	@Transient
 	private double scoreBetweennessCentrality;
-	
+
 	public File(String path, Project project, String extension) {
 		super();
 		this.path = path;
 		this.project = project;
 		this.extension = extension;
 	}
-	
+
+	public File(String path) {
+		super();
+		this.path = path;
+	}
+
 	public File() {
 	}
 
@@ -62,7 +67,7 @@ public class File {
 	public void setProject(Project project) {
 		this.project = project;
 	}
-	
+
 	public String getExtension() {
 		return extension;
 	}

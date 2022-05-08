@@ -14,8 +14,9 @@ import utils.RepositoryAnalyzer;
 public class CommitAnalysis {
 
 	public static void main(String[] args) {
-		ProjectExtractor.init(args[0]);
-		String projectName = ProjectExtractor.extractProjectName(args[0]);
+		ProjectExtractor projectExtractor = new ProjectExtractor();
+		projectExtractor.run(args[0]);
+		String projectName = projectExtractor.extractProjectName(args[0]);
 		RepositoryAnalyzer.initRepository(projectName);
 		Project project = ProjectUtils.getProjectByName(projectName);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);

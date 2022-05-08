@@ -23,7 +23,6 @@ public class CommitFile {
 	@Enumerated(EnumType.STRING)
 	private OperationType operation;
 	private int adds;
-	private int dels;
 	
 	public CommitFile(File file, OperationType operation) {
 		super();
@@ -74,11 +73,4 @@ public class CommitFile {
 		this.adds = adds;
 	}
 
-	public int getDels() {
-		return dels;
-	}
-
-	public void setDels(int dels) {
-		this.dels = dels;
-	}
 }

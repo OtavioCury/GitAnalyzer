@@ -19,8 +19,9 @@ public class FileImportanceAnalysis {
 	public static void main(String[] args) {
 		HashMap<FileImportanceMetric, List<String>> metricList = new HashMap<FileImportanceMetric, List<String>>(); 
 		
-		ProjectExtractor.init(args[0]);
-		String projectName = ProjectExtractor.extractProjectName(args[0]);
+		ProjectExtractor projectExtractor = new ProjectExtractor();
+		projectExtractor.run(args[0]);
+		String projectName = projectExtractor.extractProjectName(args[0]);
 		RepositoryAnalyzer.initRepository(projectName);
 		Project project = ProjectUtils.getProjectByName(projectName);
 		List<File> files = RepositoryAnalyzer.getAnalyzedFiles(project);

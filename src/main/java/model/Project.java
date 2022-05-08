@@ -18,6 +18,7 @@ public class Project {
 	private String currentPath;
 	@OneToOne
 	private ProjectConstants projectConstants;
+	private boolean commitsExtracted;
 	
 	public Project(String name, String currentPath) {
 		super();
@@ -59,6 +60,14 @@ public class Project {
 
 	public void setProjectConstants(ProjectConstants projectConstants) {
 		this.projectConstants = projectConstants;
+	}
+
+	public boolean isCommitsExtracted() {
+		return commitsExtracted;
+	}
+
+	public void setCommitsExtracted(boolean commitsExtracted) {
+		this.commitsExtracted = commitsExtracted;
 	}
 
 }

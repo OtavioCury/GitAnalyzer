@@ -3,10 +3,11 @@ package extractors;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 import org.apache.xmlbeans.impl.common.Levenshtein;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -55,13 +56,24 @@ public class CommitExtractor {
 		CommitFileDAO commitFileDao = new CommitFileDAO();
 		FileDAO fileDAO = new FileDAO();
 		FileRenameDAO fileRenameDAO = new FileRenameDAO();
-		Iterable<RevCommit> commits = RepositoryAnalyzer.git.log().setRevFilter(RevFilter.NO_MERGES).all().call();
+		Iterable<RevCommit> commits = RepositoryAnalyzer.git.log().setRevFilter(RevFilter.NO_MERGES).call();
 		List<RevCommit> commitsList = new ArrayList<RevCommit>();
 		commits.forEach(commitsList::add);
-		List<String> invalidsCommits = project.getProjectConstants().getInvalidCommits();
+		Collections.sort(commitsList, new Comparator<RevCommit>() {
+			public int compare(RevCommit commit1, RevCommit commit2) {
+				if (commit1.getAuthorIdent().getWhen().after(commit2.getAuthorIdent().getWhen())) {
+					return -1;
+				}else if(commit1.getAuthorIdent().getWhen().before(commit2.getAuthorIdent().getWhen())) {
+					return 1;
+				}else {
+					return 0;
+				}
+			}
+		});
+		//		List<String> invalidsCommits = project.getProjectConstants() != null ? null: 
+		//			project.getProjectConstants().getInvalidCommits();
 		for (int i = 0; i < commitsList.size(); i++) {//analyze each commit
-			if(commitDao.findByIdExists(commitsList.get(i).getName()) == false
-					&& invalidsCommits.contains(commitsList.get(i).getName()) == false) {
+			if(commitDao.findByIdExistsByProject(commitsList.get(i).getName(), project) == false) {
 				String authorName = null, authorEmail = null;
 				if (commitsList.get(i).getAuthorIdent() != null) {
 					if (commitsList.get(i).getAuthorIdent().getEmailAddress() != null) {
@@ -90,16 +102,13 @@ public class CommitExtractor {
 					committer = new Contributor(committerName, committerEmail, project);
 					contributorDao.persist(committer);
 				}
-				Commit commit = commitDao.findById(commitsList.get(i).getName());
-				if(commit == null) {
-					List<String> parents = new ArrayList<String>();
-					for(RevCommit parent: commitsList.get(i).getParents()) {
-						parents.add(parent.getName());
-					}
-					commit = new Commit(author, committer, commitsList.get(i).getAuthorIdent().getWhen(), 
-							commitsList.get(i).getName(), parents);
-					commitDao.persist(commit);
+				List<String> parents = new ArrayList<String>();
+				for(RevCommit parent: commitsList.get(i).getParents()) {
+					parents.add(parent.getName());
 				}
+				Commit commit = new Commit(author, committer, project, commitsList.get(i).getAuthorIdent().getWhen(), 
+						commitsList.get(i).getName(), parents);
+				commitDao.persist(commit);
 				List<DiffEntry> diffsForTheCommit = diffsForTheCommit(RepositoryAnalyzer.repository, commitsList.get(i));
 				for (DiffEntry diff : diffsForTheCommit) {
 					String newPath = diff.getNewPath().toString();
@@ -161,7 +170,6 @@ public class CommitExtractor {
 
 						Map<String, Integer> modifications = analyze(in);
 						commitFile.setAdds(modifications.get("adds"));
-						commitFile.setDels(modifications.get("dels"));
 						commitFile.setCommit(commit);
 						commitFileDao.persist(commitFile);
 
@@ -174,6 +182,7 @@ public class CommitExtractor {
 					}
 				}
 			}
+			System.out.println(i);
 		}
 	}
 
@@ -199,9 +208,7 @@ public class CommitExtractor {
 	}
 
 	private static Map<String, Integer> analyze(String fileDiff){
-		Stack<String> additions = new Stack<String>();
-		Stack<String> deletions = new Stack<String>();
-		int adds = 0, mods = 0, dels = 0, conditions = 0;
+		int adds = 0;
 		HashMap<String, Integer> modifications = new HashMap<String, Integer>();
 		if(fileDiff !=null ){
 			String[] lines = fileDiff.split("\n");
@@ -209,52 +216,12 @@ public class CommitExtractor {
 			for(int i = 0; i < lines.length; i++){
 				if((i > 3) && (lines[i].length() > 0)){
 					if((lines[i].charAt(0) == '+') && (lines[i].substring(1).trim().length() > 0)) {
-						additions.push(lines[i].substring(1));
-					}else if((lines[i].charAt(0) == '-') && (lines[i].substring(1).trim().length() > 0)) {
-						deletions.push(lines[i].substring(1));
-					}else if ((!additions.isEmpty()) || (!deletions.isEmpty())) {
-						for (String temp : additions) {
-							if (temp.trim().startsWith("if")) {
-								conditions++;
-							}
-						}
-						while((!additions.isEmpty()) || (!deletions.isEmpty())){
-							if(additions.isEmpty()){
-								deletions.pop();
-								dels++;
-							} else if(deletions.isEmpty()){
-								additions.pop();
-								adds++;
-							} else {
-								String add = additions.pop();
-								String del = deletions.pop();
-								if(isSimilar(add, del)){
-									mods++;
-								} else if(additions.size() > deletions.size()){
-									deletions.push(del);
-									adds++;
-								} else {
-									additions.push(add);
-									dels++;
-								}
-							}
-						}
+						adds++;
 					}
 				}
 			}
 		}
-		if (!additions.isEmpty()) {
-			additions.pop();
-			adds++;
-		}
-		if(!deletions.isEmpty()){
-			deletions.pop();
-			dels++;
-		}
 		modifications.put("adds", adds);
-		modifications.put("mods", mods);
-		modifications.put("dels", dels);
-		modifications.put("conditions", conditions);
 		return modifications;
 	}
 

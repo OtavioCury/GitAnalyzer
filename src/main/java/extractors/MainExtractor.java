@@ -12,8 +12,9 @@ import utils.RepositoryAnalyzer;
 public class MainExtractor {
 
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
-		ProjectExtractor.init(args[0]);
-		String projectName = ProjectExtractor.extractProjectName(args[0]);
+		ProjectExtractor projectExtractor = new ProjectExtractor();
+		projectExtractor.run(args[0]);
+		String projectName = projectExtractor.extractProjectName(args[0]);
 		System.out.println("================ Extracting "+projectName+"============");
 		ProjectDAO projectDao = new ProjectDAO();
 		Project project = projectDao.findByName(projectName);
@@ -97,7 +98,7 @@ public class MainExtractor {
 
 	private static void extractFiles(Project project) {
 		FileExtractor fileAnalyzer = new FileExtractor(project);
-		fileAnalyzer.run();
+		fileAnalyzer.run(RepositoryAnalyzer.repository);
 	}
 
 }

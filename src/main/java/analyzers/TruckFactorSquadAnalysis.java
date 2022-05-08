@@ -6,7 +6,6 @@ import java.util.Set;
 
 import dao.ProjectVersionDAO;
 import dao.SquadDAO;
-import enums.KnowledgeMetric;
 import extractors.ProjectExtractor;
 import model.Commit;
 import model.File;
@@ -24,8 +23,9 @@ public class TruckFactorSquadAnalysis {
 		SquadDAO squadDAO = new SquadDAO();
 		Commit currentVersion = RepositoryAnalyzer.getCurrentCommit();
 		
-		ProjectExtractor.init(args[0]);
-		String projectName = ProjectExtractor.extractProjectName(args[0]);
+		ProjectExtractor projectExtractor = new ProjectExtractor();
+		projectExtractor.run(args[0]);
+		String projectName = projectExtractor.extractProjectName(args[0]);
 		RepositoryAnalyzer.initRepository(projectName);
 		Project project = ProjectUtils.getProjectByName(projectName);
 		

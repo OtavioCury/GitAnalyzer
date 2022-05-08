@@ -1,6 +1,5 @@
 package dao;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -26,7 +25,7 @@ public class FileDAO extends GenericDAO<File>{
 	public boolean exist(File entity) {
 		return false;
 	}
-	
+
 	public boolean existsByFilePathProject(String path, Project project) {
 		String hql = "select count(id) from File f where f.path=:path and f.project.id=:id";
 		Query q = em.createQuery(hql);
@@ -96,7 +95,7 @@ public class FileDAO extends GenericDAO<File>{
 		}
 		return fileChanges;
 	} 
-	
+
 	public Set<File> filesTouchedContributorsLastMonths(List<Contributor> contributors, Date date){
 		List<Long> idsContributos = contributors.stream().map(Contributor::getId).collect(Collectors.toList());
 		String hql = "select c.file from CommitFile c where c.commit.date >=:date and c.commit.author.id in (:idsContributors)";

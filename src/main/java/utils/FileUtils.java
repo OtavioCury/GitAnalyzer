@@ -16,6 +16,7 @@ import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -57,7 +58,7 @@ public class FileUtils {
 		FileDAO fileDAO = new FileDAO();
 		List<String> currentFilesPath = null;
 		try {
-			currentFilesPath = currentFiles();
+			currentFilesPath = currentFiles(RepositoryAnalyzer.repository);
 			for(String filePath: currentFilesPath) {
 				File file = fileDAO.findByPath(filePath, project);
 				if(file != null) {
@@ -71,13 +72,13 @@ public class FileUtils {
 		return files;
 	}
 
-	public static List<String> currentFiles() throws MissingObjectException, IncorrectObjectTypeException, IOException {
-		Ref head = RepositoryAnalyzer.repository.exactRef("HEAD");
+	public static List<String> currentFiles(Repository repository) throws MissingObjectException, IncorrectObjectTypeException, IOException {
+		Ref head = repository.exactRef("HEAD");
 		List<String> filesPath = new ArrayList<String>();
-		RevWalk walk = new RevWalk(RepositoryAnalyzer.repository);
+		RevWalk walk = new RevWalk(repository);
 		RevCommit commit = walk.parseCommit(head.getObjectId());
 		RevTree tree = commit.getTree();
-		TreeWalk treeWalk = new TreeWalk(RepositoryAnalyzer.repository);
+		TreeWalk treeWalk = new TreeWalk(repository);
 		treeWalk.addTree(tree);
 		treeWalk.setRecursive(true);
 		while (treeWalk.next()) {

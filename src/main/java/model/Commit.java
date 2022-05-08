@@ -13,7 +13,7 @@ import javax.persistence.Transient;
 
 @Entity
 public class Commit {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -21,23 +21,26 @@ public class Commit {
 	private Contributor author;
 	@ManyToOne
 	private Contributor commiter;
+	@ManyToOne
+	private Project project;
 	@ElementCollection
-    private List<String> parentsIds;
+	private List<String> parentsIds;
 	private Date date;
 	private String externalId;
-	
+
 	@Transient
 	private List<CommitFile> commitFiles;
-	
-	public Commit(Contributor author, Contributor commiter, Date date, String externalId, List<String> parentsIds) {
+
+	public Commit(Contributor author, Contributor commiter, Project project, Date date, String externalId, List<String> parentsIds) {
 		super();
 		this.author = author;
 		this.commiter = commiter;
+		this.project = project;
 		this.date = date;
 		this.externalId = externalId;
 		this.parentsIds = parentsIds;
 	}
-	
+
 	public Commit() {
 	}
 
@@ -96,5 +99,13 @@ public class Commit {
 	public void setCommitFiles(List<CommitFile> commitFiles) {
 		this.commitFiles = commitFiles;
 	}
-	
+
+	public Project getProject() {
+		return project;
+	}
+
+	public void setProject(Project project) {
+		this.project = project;
+	}
+
 }

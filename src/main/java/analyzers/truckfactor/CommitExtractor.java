@@ -3,14 +3,14 @@ package analyzers.truckfactor;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Stack;
 
-import org.apache.xmlbeans.impl.common.Levenshtein;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -37,15 +37,27 @@ import utils.Constants;
 
 public class CommitExtractor {
 
-	public static List<Commit> getCommits(List<File> files, Git git, Repository repository) throws NoHeadException, 
+	public List<Commit> getCommits(List<File> files, Git git, Repository repository) throws NoHeadException, 
 	GitAPIException, AmbiguousObjectException, IncorrectObjectTypeException, IOException{
 		HashMap<String, List<String>> arquivoRenames = new HashMap<String, List<String>>();
 		for (File file : files) {
 			arquivoRenames.put(file.getPath(), new ArrayList<String>());
 		}
-		Iterable<RevCommit> commitsIterable = git.log().setRevFilter(RevFilter.NO_MERGES).all().call();
+		Iterable<RevCommit> commitsIterable = git.log().setRevFilter(RevFilter.NO_MERGES).call();
 		List<RevCommit> commitsList = new ArrayList<RevCommit>();
 		commitsIterable.forEach(commitsList::add);
+		Collections.sort(commitsList, new Comparator<RevCommit>() {
+			public int compare(RevCommit commit1, RevCommit commit2) {
+				if (commit1.getAuthorIdent().getWhen().after(commit2.getAuthorIdent().getWhen())) {
+					return -1;
+				}else if(commit1.getAuthorIdent().getWhen().before(commit2.getAuthorIdent().getWhen())) {
+					return 1;
+				}else {
+					return 0;
+				}
+			}
+		});
+
 		boolean analyse;
 		List<Commit> commits = new ArrayList<Commit>();
 		for (RevCommit jgitCommit: commitsList) {
@@ -91,44 +103,49 @@ public class CommitExtractor {
 				commit.setDate(jgitCommit.getAuthorIdent().getWhen());
 				commit.setCommitFiles(new ArrayList<CommitFile>());
 				for (DiffEntry diff : diffsForTheCommit) {
+					String newPath = diff.getNewPath();
+					String oldPath = diff.getOldPath();
 					Iterator<Entry<String, List<String>>> it = arquivoRenames.entrySet().iterator();
 					while (it.hasNext()) {
 						Map.Entry<String, List<String>> pair = (Map.Entry<String, List<String>>) it.next();
-						CommitFile commitFile = new CommitFile();
-						if(diff.getChangeType().name().equals(Constants.ADD)){
-							commitFile.setOperation(OperationType.ADD);
-						}else if(diff.getChangeType().name().equals(Constants.DELETE)){
-							commitFile.setOperation(OperationType.DEL);
-						}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
-							commitFile.setOperation(OperationType.MOD);
-						}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
-							commitFile.setOperation(OperationType.REN);
-						}else{
-							continue;
-						}
-
-						ByteArrayOutputStream stream = new ByteArrayOutputStream();
-						DiffFormatter diffFormatter = new DiffFormatter( stream );
-						diffFormatter.setRepository(repository);
-						diffFormatter.format(diff);
-
-						String in = stream.toString();
-
-						Map<String, Integer> modifications = analyze(in);
-						commitFile.setAdds(modifications.get("adds"));
-						commitFile.setDels(modifications.get("dels"));
-						for (File file: files) {
-							if (file.getPath().equals(pair.getKey())) {
-								commitFile.setFile(file);
+						if(pair.getKey().equals(newPath) || pair.getValue().contains(newPath)
+								|| pair.getKey().equals(oldPath) || pair.getValue().contains(oldPath)) {
+							CommitFile commitFile = new CommitFile();
+							if(diff.getChangeType().name().equals(Constants.ADD)){
+								commitFile.setOperation(OperationType.ADD);
+							}else if(diff.getChangeType().name().equals(Constants.DELETE)){
+								commitFile.setOperation(OperationType.DEL);
+							}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
+								commitFile.setOperation(OperationType.MOD);
+							}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
+								commitFile.setOperation(OperationType.REN);
+							}else{
+								continue;
 							}
-						}
-						commit.getCommitFiles().add(commitFile);
 
-						diffFormatter.flush();
-						diffFormatter.close();		        
+							ByteArrayOutputStream stream = new ByteArrayOutputStream();
+							DiffFormatter diffFormatter = new DiffFormatter( stream );
+							diffFormatter.setRepository(repository);
+							diffFormatter.format(diff);
+
+							String in = stream.toString();
+
+							Map<String, Integer> modifications = analyze(in);
+							commitFile.setAdds(modifications.get("adds"));
+							for (File file: files) {
+								if (file.getPath().equals(pair.getKey())) {
+									commitFile.setFile(file);
+								}
+							}
+							commit.getCommitFiles().add(commitFile);
+
+							diffFormatter.flush();
+							diffFormatter.close();		        
+						}
 					}
 				}
 				commits.add(commit);
+				System.out.println(commits.size());
 			}
 		}
 		return commits;
@@ -156,9 +173,7 @@ public class CommitExtractor {
 	}
 
 	private static Map<String, Integer> analyze(String fileDiff){
-		Stack<String> additions = new Stack<String>();
-		Stack<String> deletions = new Stack<String>();
-		int adds = 0, mods = 0, dels = 0, conditions = 0;
+		int adds = 0;
 		HashMap<String, Integer> modifications = new HashMap<String, Integer>();
 		if(fileDiff !=null ){
 			String[] lines = fileDiff.split("\n");
@@ -166,61 +181,13 @@ public class CommitExtractor {
 			for(int i = 0; i < lines.length; i++){
 				if((i > 3) && (lines[i].length() > 0)){
 					if((lines[i].charAt(0) == '+') && (lines[i].substring(1).trim().length() > 0)) {
-						additions.push(lines[i].substring(1));
-					}else if((lines[i].charAt(0) == '-') && (lines[i].substring(1).trim().length() > 0)) {
-						deletions.push(lines[i].substring(1));
-					}else if ((!additions.isEmpty()) || (!deletions.isEmpty())) {
-						for (String temp : additions) {
-							if (temp.trim().startsWith("if")) {
-								conditions++;
-							}
-						}
-						while((!additions.isEmpty()) || (!deletions.isEmpty())){
-							if(additions.isEmpty()){
-								deletions.pop();
-								dels++;
-							} else if(deletions.isEmpty()){
-								additions.pop();
-								adds++;
-							} else {
-								String add = additions.pop();
-								String del = deletions.pop();
-								if(isSimilar(add, del)){
-									mods++;
-								} else if(additions.size() > deletions.size()){
-									deletions.push(del);
-									adds++;
-								} else {
-									additions.push(add);
-									dels++;
-								}
-							}
-						}
+						adds++;
 					}
 				}
 			}
 		}
-		if (!additions.isEmpty()) {
-			additions.pop();
-			adds++;
-		}
-		if(!deletions.isEmpty()){
-			deletions.pop();
-			dels++;
-		}
 		modifications.put("adds", adds);
-		modifications.put("mods", mods);
-		modifications.put("dels", dels);
-		modifications.put("conditions", conditions);
 		return modifications;
-	}
-
-	private static boolean isSimilar(String string1, String string2){
-		int result = Levenshtein.distance(string1, string2);
-		if(((double)result/string1.length()) < 0.4)
-			return true;
-		return false;
-
 	}
 
 }
