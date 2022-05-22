@@ -62,6 +62,9 @@ public class Constants {
 	public static final String PREFIX = new String("prefix");
 	public static final String ATTRIBUTE = new String("attribute");
 	public static final String TYPE = new String("type");
+	
+	public static final String linguistFileName = new String("linguistfiles.log");
+	public static final String clocFileName = new String("cloc_info.log");
 
 	public static final double normalizedThresholdMantainerDOA = 0.75;
 	public static final double normalizedThresholdMantainerDOE = 0.7;

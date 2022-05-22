@@ -98,7 +98,7 @@ public class MainExtractor {
 
 	private static void extractFiles(Project project) {
 		FileExtractor fileAnalyzer = new FileExtractor(project);
-		fileAnalyzer.run(RepositoryAnalyzer.repository);
+		fileAnalyzer.extractFromRepository(RepositoryAnalyzer.repository);
 	}
 
 }

@@ -145,7 +145,6 @@ public class CommitExtractor {
 					}
 				}
 				commits.add(commit);
-				System.out.println(commits.size());
 			}
 		}
 		return commits;

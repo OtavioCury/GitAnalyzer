@@ -1,5 +1,6 @@
 package model;
 
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Entity;
@@ -106,5 +107,22 @@ public class Contributor {
 
 	public void setAlias(Set<Contributor> alias) {
 		this.alias = alias;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(email, name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Contributor other = (Contributor) obj;
+		return Objects.equals(email, other.email) && Objects.equals(name, other.name);
 	}
 }

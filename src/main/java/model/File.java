@@ -17,6 +17,7 @@ public class File {
 	@ManyToOne
 	private Project project;
 	private String extension;
+	private int fileSize;
 
 	@Transient
 	private String content;
@@ -34,6 +35,14 @@ public class File {
 		this.path = path;
 		this.project = project;
 		this.extension = extension;
+	}
+	
+	public File(String path, Project project, String extension, int fileSize) {
+		super();
+		this.path = path;
+		this.project = project;
+		this.extension = extension;
+		this.fileSize = fileSize;
 	}
 
 	public File(String path) {
@@ -114,6 +123,14 @@ public class File {
 
 	public void setScoreBetweennessCentrality(double scoreBetweennessCentrality) {
 		this.scoreBetweennessCentrality = scoreBetweennessCentrality;
+	}
+
+	public int getFileSize() {
+		return fileSize;
+	}
+
+	public void setFileSize(int fileSize) {
+		this.fileSize = fileSize;
 	}
 
 }
