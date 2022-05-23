@@ -6,7 +6,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class AuthorDOA {
 
 	@Id
@@ -17,7 +22,7 @@ public class AuthorDOA {
 	@ManyToOne
 	private Commit version;
 	private Double degreeOfAuthorship;
-	
+
 	public AuthorDOA() {
 	}
 	public AuthorDOA(AuthorFile authorFile, Commit version, Double degreeOfAuthorship) {
@@ -26,28 +31,5 @@ public class AuthorDOA {
 		this.version = version;
 		this.degreeOfAuthorship = degreeOfAuthorship;
 	}
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public AuthorFile getAuthorFile() {
-		return authorFile;
-	}
-	public void setAuthorFile(AuthorFile authorFile) {
-		this.authorFile = authorFile;
-	}
-	public Commit getVersion() {
-		return version;
-	}
-	public void setVersion(Commit version) {
-		this.version = version;
-	}
-	public Double getDegreeOfAuthorship() {
-		return degreeOfAuthorship;
-	}
-	public void setDegreeOfAuthorship(Double degreeOfAuthorship) {
-		this.degreeOfAuthorship = degreeOfAuthorship;
-	}
+
 }

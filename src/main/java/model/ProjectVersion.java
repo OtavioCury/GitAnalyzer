@@ -6,7 +6,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class ProjectVersion {
 	
 	@Id
@@ -24,24 +29,5 @@ public class ProjectVersion {
 	}
 	public ProjectVersion() {
 		super();
-	}
-
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public Project getProject() {
-		return project;
-	}
-	public void setProject(Project project) {
-		this.project = project;
-	}
-	public Commit getVersion() {
-		return version;
-	}
-	public void setVersion(Commit version) {
-		this.version = version;
 	}
 }

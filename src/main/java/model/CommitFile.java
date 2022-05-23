@@ -9,10 +9,14 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 import enums.OperationType;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 public class CommitFile {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -23,54 +27,14 @@ public class CommitFile {
 	@Enumerated(EnumType.STRING)
 	private OperationType operation;
 	private int adds;
-	
+
 	public CommitFile(File file, OperationType operation) {
 		super();
 		this.file = file;
 		this.operation = operation;
 	}
-	
+
 	public CommitFile() {
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public File getFile() {
-		return file;
-	}
-
-	public void setFile(File file) {
-		this.file = file;
-	}
-
-	public Commit getCommit() {
-		return commit;
-	}
-
-	public void setCommit(Commit commit) {
-		this.commit = commit;
-	}
-
-	public OperationType getOperation() {
-		return operation;
-	}
-
-	public void setOperation(OperationType operation) {
-		this.operation = operation;
-	}
-
-	public int getAdds() {
-		return adds;
-	}
-
-	public void setAdds(int adds) {
-		this.adds = adds;
 	}
 
 }

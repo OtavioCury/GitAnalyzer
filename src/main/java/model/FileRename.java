@@ -7,7 +7,12 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class FileRename {
 	
 	@Id
@@ -27,31 +32,6 @@ public class FileRename {
 		super();
 		this.oldFile = oldFile;
 		this.newFile = newFile;
-		this.commitChange = commitChange;
-	}
-	
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public File getOldFile() {
-		return oldFile;
-	}
-	public void setOldFile(File oldFile) {
-		this.oldFile = oldFile;
-	}
-	public File getNewFile() {
-		return newFile;
-	}
-	public void setNewFile(File newFile) {
-		this.newFile = newFile;
-	}
-	public Commit getCommitChange() {
-		return commitChange;
-	}
-	public void setCommitChange(Commit commitChange) {
 		this.commitChange = commitChange;
 	}
 	

@@ -6,7 +6,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class AuthorFile {
 	
 	@Id
@@ -28,35 +33,4 @@ public class AuthorFile {
 	public AuthorFile() {
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Contributor getAuthor() {
-		return author;
-	}
-
-	public void setAuthor(Contributor author) {
-		this.author = author;
-	}
-
-	public File getFile() {
-		return file;
-	}
-
-	public void setFile(File file) {
-		this.file = file;
-	}
-
-	public boolean isFirstAuthor() {
-		return firstAuthor;
-	}
-
-	public void setFirstAuthor(boolean firstAuthor) {
-		this.firstAuthor = firstAuthor;
-	}
 }

@@ -11,7 +11,12 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class Commit {
 
 	@Id
@@ -42,70 +47,6 @@ public class Commit {
 	}
 
 	public Commit() {
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Contributor getAuthor() {
-		return author;
-	}
-
-	public void setAuthor(Contributor author) {
-		this.author = author;
-	}
-
-	public Date getDate() {
-		return date;
-	}
-
-	public void setDate(Date date) {
-		this.date = date;
-	}
-
-	public String getExternalId() {
-		return externalId;
-	}
-
-	public void setExternalId(String externalId) {
-		this.externalId = externalId;
-	}
-
-	public List<String> getParentsIds() {
-		return parentsIds;
-	}
-
-	public void setParentsIds(List<String> parentsIds) {
-		this.parentsIds = parentsIds;
-	}
-
-	public Contributor getCommiter() {
-		return commiter;
-	}
-
-	public void setCommiter(Contributor commiter) {
-		this.commiter = commiter;
-	}
-
-	public List<CommitFile> getCommitFiles() {
-		return commitFiles;
-	}
-
-	public void setCommitFiles(List<CommitFile> commitFiles) {
-		this.commitFiles = commitFiles;
-	}
-
-	public Project getProject() {
-		return project;
-	}
-
-	public void setProject(Project project) {
-		this.project = project;
 	}
 
 }

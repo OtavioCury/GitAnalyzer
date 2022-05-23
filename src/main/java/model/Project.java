@@ -7,9 +7,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class Project {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -19,55 +24,19 @@ public class Project {
 	@OneToOne
 	private ProjectConstants projectConstants;
 	private boolean commitsExtracted;
-	
+
 	public Project(String name, String currentPath) {
 		super();
 		this.name = name;
 		this.currentPath = currentPath;
 	}
 
-	public Project() {
-		super();
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
+	public Project(String name) {
 		this.name = name;
 	}
 
-	public String getCurrentPath() {
-		return currentPath;
-	}
-
-	public void setCurrentPath(String currentPath) {
-		this.currentPath = currentPath;
-	}
-
-	public ProjectConstants getProjectConstants() {
-		return projectConstants;
-	}
-
-	public void setProjectConstants(ProjectConstants projectConstants) {
-		this.projectConstants = projectConstants;
-	}
-
-	public boolean isCommitsExtracted() {
-		return commitsExtracted;
-	}
-
-	public void setCommitsExtracted(boolean commitsExtracted) {
-		this.commitsExtracted = commitsExtracted;
+	public Project() {
+		super();
 	}
 
 }

@@ -15,8 +15,12 @@ import javax.persistence.ManyToOne;
 import enums.FileImportanceMetric;
 import enums.KnowledgeMetric;
 import enums.TruckFactorType;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 public class ProjectVersionTruckFactor {
 
 	@Id
@@ -50,53 +54,5 @@ public class ProjectVersionTruckFactor {
 	}
 	public ProjectVersionTruckFactor() {
 		super();
-	}
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public ProjectVersion getProjectVersion() {
-		return projectVersion;
-	}
-	public void setProjectVersion(ProjectVersion projectVersion) {
-		this.projectVersion = projectVersion;
-	}
-	public KnowledgeMetric getKnowledgeMetric() {
-		return knowledgeMetric;
-	}
-	public void setKnowledgeMetric(KnowledgeMetric knowledgeMetric) {
-		this.knowledgeMetric = knowledgeMetric;
-	}
-	public FileImportanceMetric getFileImportanceMetric() {
-		return fileImportanceMetric;
-	}
-	public void setFileImportanceMetric(FileImportanceMetric fileImportanceMetric) {
-		this.fileImportanceMetric = fileImportanceMetric;
-	}
-	public TruckFactorType getTruckFactorType() {
-		return truckFactorType;
-	}
-	public void setTruckFactorType(TruckFactorType truckFactorType) {
-		this.truckFactorType = truckFactorType;
-	}
-	public List<Contributor> getTopContributors() {
-		return topContributors;
-	}
-	public void setTopContributors(List<Contributor> topContributors) {
-		this.topContributors = topContributors;
-	}
-	public int getTruckFactor() {
-		return truckFactor;
-	}
-	public void setTruckFactor(int truckFactor) {
-		this.truckFactor = truckFactor;
-	}
-	public List<File> getAbandonedFiles() {
-		return abandonedFiles;
-	}
-	public void setAbandonedFiles(List<File> abandonedFiles) {
-		this.abandonedFiles = abandonedFiles;
 	}
 }

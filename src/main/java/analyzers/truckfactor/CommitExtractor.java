@@ -57,97 +57,98 @@ public class CommitExtractor {
 				}
 			}
 		});
-
-		boolean analyse;
-		List<Commit> commits = new ArrayList<Commit>();
-		for (RevCommit jgitCommit: commitsList) {
-			String nome = null, email = null;
-			if (jgitCommit.getAuthorIdent() != null) {
-				if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
-					email = jgitCommit.getAuthorIdent().getEmailAddress();
-				}else {
-					email = jgitCommit.getCommitterIdent().getEmailAddress();
-				}
-				if (jgitCommit.getAuthorIdent().getName() != null) {
-					nome = jgitCommit.getAuthorIdent().getName();
-				}else {
-					nome = jgitCommit.getCommitterIdent().getName();
-				}
-			}else {
-				email = jgitCommit.getCommitterIdent().getEmailAddress();
-				nome = jgitCommit.getCommitterIdent().getName();
-			}
-			List<DiffEntry> diffsForTheCommit = diffsForTheCommit(repository, jgitCommit);
-			analyse = false;
-			for (DiffEntry diff : diffsForTheCommit) {
-				String newPath = diff.getNewPath();
-				String oldPath = diff.getOldPath();
-				Iterator<Entry<String, List<String>>> it = arquivoRenames.entrySet().iterator();
-				while (it.hasNext()) {
-					Map.Entry<String, List<String>> pair = (Map.Entry<String, List<String>>) it.next();
-					if(pair.getKey().equals(newPath) || pair.getValue().contains(newPath)
-							|| pair.getKey().equals(oldPath) || pair.getValue().contains(oldPath)) {
-						analyse = true;
-						if (diff.getChangeType().name().equals(Constants.RENAME) && 
-								pair.getValue().contains(oldPath) == false) {
-							pair.getValue().add(oldPath);
-						}
-					}
-				}
-			}
-			if (analyse) {
-				Contributor author = new Contributor(nome, email);
-				Commit commit = new Commit();
-				commit.setExternalId(jgitCommit.getName());
-				commit.setAuthor(author);
-				commit.setDate(jgitCommit.getAuthorIdent().getWhen());
-				commit.setCommitFiles(new ArrayList<CommitFile>());
-				for (DiffEntry diff : diffsForTheCommit) {
-					String newPath = diff.getNewPath();
-					String oldPath = diff.getOldPath();
-					Iterator<Entry<String, List<String>>> it = arquivoRenames.entrySet().iterator();
-					while (it.hasNext()) {
-						Map.Entry<String, List<String>> pair = (Map.Entry<String, List<String>>) it.next();
-						if(pair.getKey().equals(newPath) || pair.getValue().contains(newPath)
-								|| pair.getKey().equals(oldPath) || pair.getValue().contains(oldPath)) {
-							CommitFile commitFile = new CommitFile();
-							if(diff.getChangeType().name().equals(Constants.ADD)){
-								commitFile.setOperation(OperationType.ADD);
-							}else if(diff.getChangeType().name().equals(Constants.DELETE)){
-								commitFile.setOperation(OperationType.DEL);
-							}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
-								commitFile.setOperation(OperationType.MOD);
-							}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
-								commitFile.setOperation(OperationType.REN);
-							}else{
-								continue;
-							}
-
-							ByteArrayOutputStream stream = new ByteArrayOutputStream();
-							DiffFormatter diffFormatter = new DiffFormatter( stream );
-							diffFormatter.setRepository(repository);
-							diffFormatter.format(diff);
-
-							String in = stream.toString();
-
-							Map<String, Integer> modifications = analyze(in);
-							commitFile.setAdds(modifications.get("adds"));
-							for (File file: files) {
-								if (file.getPath().equals(pair.getKey())) {
-									commitFile.setFile(file);
-								}
-							}
-							commit.getCommitFiles().add(commitFile);
-
-							diffFormatter.flush();
-							diffFormatter.close();		        
-						}
-					}
-				}
-				commits.add(commit);
-			}
-		}
-		return commits;
+		System.out.println(commitsList.get(0).getAuthorIdent().getWhen());
+		return null;
+//		boolean analyse;
+//		List<Commit> commits = new ArrayList<Commit>();
+//		for (RevCommit jgitCommit: commitsList) {
+//			String nome = null, email = null;
+//			if (jgitCommit.getAuthorIdent() != null) {
+//				if (jgitCommit.getAuthorIdent().getEmailAddress() != null) {
+//					email = jgitCommit.getAuthorIdent().getEmailAddress();
+//				}else {
+//					email = jgitCommit.getCommitterIdent().getEmailAddress();
+//				}
+//				if (jgitCommit.getAuthorIdent().getName() != null) {
+//					nome = jgitCommit.getAuthorIdent().getName();
+//				}else {
+//					nome = jgitCommit.getCommitterIdent().getName();
+//				}
+//			}else {
+//				email = jgitCommit.getCommitterIdent().getEmailAddress();
+//				nome = jgitCommit.getCommitterIdent().getName();
+//			}
+//			List<DiffEntry> diffsForTheCommit = diffsForTheCommit(repository, jgitCommit);
+//			analyse = false;
+//			for (DiffEntry diff : diffsForTheCommit) {
+//				String newPath = diff.getNewPath();
+//				String oldPath = diff.getOldPath();
+//				Iterator<Entry<String, List<String>>> it = arquivoRenames.entrySet().iterator();
+//				while (it.hasNext()) {
+//					Map.Entry<String, List<String>> pair = (Map.Entry<String, List<String>>) it.next();
+//					if(pair.getKey().equals(newPath) || pair.getValue().contains(newPath)
+//							|| pair.getKey().equals(oldPath) || pair.getValue().contains(oldPath)) {
+//						analyse = true;
+//						if (diff.getChangeType().name().equals(Constants.RENAME) && 
+//								pair.getValue().contains(oldPath) == false) {
+//							pair.getValue().add(oldPath);
+//						}
+//					}
+//				}
+//			}
+//			if (analyse) {
+//				Contributor author = new Contributor(nome, email);
+//				Commit commit = new Commit();
+//				commit.setExternalId(jgitCommit.getName());
+//				commit.setAuthor(author);
+//				commit.setDate(jgitCommit.getAuthorIdent().getWhen());
+//				commit.setCommitFiles(new ArrayList<CommitFile>());
+//				for (DiffEntry diff : diffsForTheCommit) {
+//					String newPath = diff.getNewPath();
+//					String oldPath = diff.getOldPath();
+//					Iterator<Entry<String, List<String>>> it = arquivoRenames.entrySet().iterator();
+//					while (it.hasNext()) {
+//						Map.Entry<String, List<String>> pair = (Map.Entry<String, List<String>>) it.next();
+//						if(pair.getKey().equals(newPath) || pair.getValue().contains(newPath)
+//								|| pair.getKey().equals(oldPath) || pair.getValue().contains(oldPath)) {
+//							CommitFile commitFile = new CommitFile();
+//							if(diff.getChangeType().name().equals(Constants.ADD)){
+//								commitFile.setOperation(OperationType.ADD);
+//							}else if(diff.getChangeType().name().equals(Constants.DELETE)){
+//								commitFile.setOperation(OperationType.DEL);
+//							}else if(diff.getChangeType().name().equals(Constants.MODIFY)){
+//								commitFile.setOperation(OperationType.MOD);
+//							}else if(diff.getChangeType().name().equals(Constants.RENAME)) {
+//								commitFile.setOperation(OperationType.REN);
+//							}else{
+//								continue;
+//							}
+//
+//							ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//							DiffFormatter diffFormatter = new DiffFormatter( stream );
+//							diffFormatter.setRepository(repository);
+//							diffFormatter.format(diff);
+//
+//							String in = stream.toString();
+//
+//							Map<String, Integer> modifications = analyze(in);
+//							commitFile.setAdds(modifications.get("adds"));
+//							for (File file: files) {
+//								if (file.getPath().equals(pair.getKey())) {
+//									commitFile.setFile(file);
+//								}
+//							}
+//							commit.getCommitFiles().add(commitFile);
+//
+//							diffFormatter.flush();
+//							diffFormatter.close();		        
+//						}
+//					}
+//				}
+//				commits.add(commit);
+//			}
+//		}
+//		return commits;
 	}
 
 	private static List<DiffEntry> diffsForTheCommit(Repository repo, RevCommit commit) throws IOException, AmbiguousObjectException, 

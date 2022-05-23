@@ -10,9 +10,14 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class FileVersion {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -23,7 +28,7 @@ public class FileVersion {
 	private int numberLines;
 	@ManyToMany @JoinTable(name="file_references")
 	private List<File> filesReferencesGraphOut;
-	
+
 	public FileVersion(File file, Commit version, int numberLines) {
 		super();
 		this.file = file;
@@ -32,30 +37,6 @@ public class FileVersion {
 	}
 	public FileVersion() {
 		super();
-	}
-	public File getFile() {
-		return file;
-	}
-	public void setFile(File file) {
-		this.file = file;
-	}
-	public Commit getVersion() {
-		return version;
-	}
-	public void setVersion(Commit version) {
-		this.version = version;
-	}
-	public int getNumberLines() {
-		return numberLines;
-	}
-	public void setNumberLines(int numberLines) {
-		this.numberLines = numberLines;
-	}
-	public List<File> getFilesReferencesGraphOut() {
-		return filesReferencesGraphOut;
-	}
-	public void setFilesReferencesGraphOut(List<File> filesReferencesGraphOut) {
-		this.filesReferencesGraphOut = filesReferencesGraphOut;
 	}
 
 }

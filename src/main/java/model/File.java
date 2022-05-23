@@ -7,7 +7,12 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 public class File {
 
 	@Id
@@ -51,86 +56,6 @@ public class File {
 	}
 
 	public File() {
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public Project getProject() {
-		return project;
-	}
-
-	public void setProject(Project project) {
-		this.project = project;
-	}
-
-	public String getExtension() {
-		return extension;
-	}
-
-	public void setExtension(String extension) {
-		this.extension = extension;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	public ReferenceSet getReferenceSet() {
-		return referenceSet;
-	}
-
-	public void setReferenceSet(ReferenceSet referenceSet) {
-		this.referenceSet = referenceSet;
-	}
-
-	public String getPackageName() {
-		return packageName;
-	}
-
-	public void setPackageName(String packageName) {
-		this.packageName = packageName;
-	}
-
-	public int getDegreeReferences() {
-		return degreeReferences;
-	}
-
-	public void setDegreeReferences(int degreeReferences) {
-		this.degreeReferences = degreeReferences;
-	}
-
-	public double getScoreBetweennessCentrality() {
-		return scoreBetweennessCentrality;
-	}
-
-	public void setScoreBetweennessCentrality(double scoreBetweennessCentrality) {
-		this.scoreBetweennessCentrality = scoreBetweennessCentrality;
-	}
-
-	public int getFileSize() {
-		return fileSize;
-	}
-
-	public void setFileSize(int fileSize) {
-		this.fileSize = fileSize;
 	}
 
 }

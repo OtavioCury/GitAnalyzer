@@ -31,7 +31,6 @@ public class TruckFactorAnalyzer {
 	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
 		DoeUtils doeUtils = new DoeUtils();
 		TruckFactorAnalyzer truckFactorAnalyzer = new TruckFactorAnalyzer();
-		ProjectDAO projectDao = new ProjectDAO();
 		CommitExtractor commitExtractor = new CommitExtractor();
 		String pathToDir = args[0];
 		File dir = new File(pathToDir);
@@ -39,9 +38,8 @@ public class TruckFactorAnalyzer {
 			if (fileDir.isDirectory()) {
 				String projectPath = fileDir.getAbsolutePath()+"/";
 				ProjectExtractor projectExtractor = new ProjectExtractor();
-				projectExtractor.run(projectPath);
 				String projectName = projectExtractor.extractProjectName(projectPath);
-				Project project = projectDao.findByName(projectName);
+				Project project = new Project(projectName);
 				Git git;
 				Repository repository;
 				git = Git.open(new File(projectPath));
@@ -50,23 +48,24 @@ public class TruckFactorAnalyzer {
 				System.out.println("EXTRACTING DATA FROM "+projectPath);
 				List<model.File> files = fileExtractor.extractFromFileList(projectPath, Constants.linguistFileName, Constants.clocFileName, repository);
 				List<Commit> commits = commitExtractor.getCommits(files, git, repository);
-				List<Contributor> contributors = truckFactorAnalyzer.extractContributorFromCommits(commits);
-				contributors = truckFactorAnalyzer.setAlias(contributors);
-				for(Contributor contributor: contributors) {
-					for (model.File file : files) {
-						boolean existsContributorFile = truckFactorAnalyzer.existsContributorFile(contributor, file, commits);
-						if (existsContributorFile) {
-							int adds = truckFactorAnalyzer.linesAddedContributorFile(contributor, file, commits);
-							int firstAuthor = truckFactorAnalyzer.firstAuthorContributorFile(contributor, file, commits);
-							int numDays = truckFactorAnalyzer.numDaysContributorFile(contributor, file, commits);
-							int fileSize = file.getFileSize();
-							double doe = doeUtils.getDOE(adds, firstAuthor, numDays, fileSize);
-						}
-					}
-				}
-				System.out.println("Nº FILES: "+files.size()+" Nº COMMITS: "+commits.size()+" Nº CONTRIBUTORS: "+contributors.size());
-				project.setCommitsExtracted(true);
-				projectDao.merge(project);
+				System.out.println();
+//				List<Contributor> contributors = truckFactorAnalyzer.extractContributorFromCommits(commits);
+//				contributors = truckFactorAnalyzer.setAlias(contributors);
+//				for(Contributor contributor: contributors) {
+//					for (model.File file : files) {
+//						boolean existsContributorFile = truckFactorAnalyzer.existsContributorFile(contributor, file, commits);
+//						if (existsContributorFile) {
+//							int adds = truckFactorAnalyzer.linesAddedContributorFile(contributor, file, commits);
+//							int firstAuthor = truckFactorAnalyzer.firstAuthorContributorFile(contributor, file, commits);
+//							int numDays = truckFactorAnalyzer.numDaysContributorFile(contributor, file, commits);
+//							int fileSize = file.getFileSize();
+//							double doe = doeUtils.getDOE(adds, firstAuthor, numDays, fileSize);
+//						}
+//					}
+//				}
+//				System.out.println("Nº FILES: "+files.size()+" Nº COMMITS: "+commits.size()+" Nº CONTRIBUTORS: "+contributors.size());
+//				project.setCommitsExtracted(true);
+//				projectDao.merge(project);
 			}
 		}
 	}
