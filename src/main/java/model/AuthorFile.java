@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,8 @@ public class AuthorFile {
 	@OneToOne
 	private File file;
 	private boolean firstAuthor;
+	@Transient
+	private double doe;	
 	
 	public AuthorFile(Contributor author, File file, boolean firstAuthor) {
 		super();
@@ -31,6 +34,13 @@ public class AuthorFile {
 	}
 
 	public AuthorFile() {
+	}
+
+	public AuthorFile(Contributor author, File file, double doe) {
+		super();
+		this.author = author;
+		this.file = file;
+		this.doe = doe;
 	}
 
 }
