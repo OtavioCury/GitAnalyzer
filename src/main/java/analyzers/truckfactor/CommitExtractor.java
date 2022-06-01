@@ -57,7 +57,6 @@ public class CommitExtractor {
 				}
 			}
 		});
-		//		System.out.println(commitsList.get(0).getAuthorIdent().getWhen());
 		boolean analyse;
 		List<Commit> commits = new ArrayList<Commit>();
 		for (RevCommit jgitCommit: commitsList) {

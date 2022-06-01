@@ -1,6 +1,7 @@
 package analyzers.truckfactor;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +20,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.lib.Repository;
 
+import com.opencsv.CSVWriter;
+
 import enums.OperationType;
 import extractors.FileExtractor;
 import extractors.ProjectExtractor;
@@ -31,6 +34,8 @@ import utils.Constants;
 import utils.DoeUtils;
 
 public class TruckFactorAnalyzer {
+
+	private static String filePath = "/home/otavio/projetos/truck_factor.csv";
 
 	private static List<String> invalidsProjects = new ArrayList<String>(Arrays.asList("/home/otavio/projetos/sass/", "/home/otavio/projetos/metrics/",
 			"/home/otavio/projetos/ionic/", "/home/otavio/projetos/linux/", "/home/otavio/projetos/dropwizard/", "/home/otavio/projetos/cucumber/"));
@@ -45,8 +50,10 @@ public class TruckFactorAnalyzer {
 			if (fileDir.isDirectory()) {
 				String projectPath = fileDir.getAbsolutePath()+"/";
 				if (invalidsProjects.contains(projectPath) == false) {
+					TruckFactorVO truckFactorVO = new TruckFactorVO();
 					ProjectExtractor projectExtractor = new ProjectExtractor();
 					String projectName = projectExtractor.extractProjectName(projectPath);
+					truckFactorVO.setProjectName(projectName);
 					Project project = new Project(projectName);
 					Git git;
 					Repository repository;
@@ -55,11 +62,13 @@ public class TruckFactorAnalyzer {
 					FileExtractor fileExtractor = new FileExtractor(project);
 					System.out.println("EXTRACTING DATA FROM "+projectPath);
 					List<model.File> files = fileExtractor.extractFromFileList(projectPath, Constants.linguistFileName, Constants.clocFileName, repository);
+					truckFactorVO.setNumberOfFiles(files.size());
 					List<Commit> commits = commitExtractor.getCommits(files, git, repository);
-					//commitExtractor.getCommits(files, git, repository);
-					System.out.println();
+					truckFactorVO.setNumberOfCommits(commits.size());
 					List<Contributor> contributors = truckFactorAnalyzer.extractContributorFromCommits(commits);
+					truckFactorVO.setNumberOfDevs(contributors.size());
 					contributors = truckFactorAnalyzer.setAlias(contributors);
+					truckFactorVO.setNumberOfDevsAlias(contributors.size());
 					List<AuthorFile> authorFiles = new ArrayList<AuthorFile>();
 					for(Contributor contributor: contributors) {
 						for (model.File file : files) {
@@ -81,13 +90,59 @@ public class TruckFactorAnalyzer {
 							return Integer.compare(c2.getNumberFilesAuthor(), c1.getNumberFilesAuthor());
 						}
 					});
-					System.out.println();
-					//					System.out.println("Nº FILES: "+files.size()+" Nº COMMITS: "+commits.size()+" Nº CONTRIBUTORS: "+contributors.size());
-					//					project.setCommitsExtracted(true);
-					//					projectDao.merge(project);
+					contributors.removeIf(contributor -> contributor.getNumberFilesAuthor() == 0);
+					List<Contributor> topContributors = new ArrayList<Contributor>();
+					int tf = 0;
+					while(contributors.isEmpty() == false) {
+						double covarage = truckFactorAnalyzer.getCoverage(authorFiles, contributors, files);
+						if(covarage < 0.5) 
+							break;
+						topContributors.add(contributors.get(0));
+						contributors.remove(0);
+						tf = tf+1;
+					}
+					truckFactorVO.setTruckfactor(tf);
+					String[] record = {String.valueOf(truckFactorVO.getNumberOfDevs()), String.valueOf(truckFactorVO.getNumberOfDevsAlias()), 
+							String.valueOf(truckFactorVO.getNumberOfFiles()), String.valueOf(truckFactorVO.getNumberOfCommits()), 
+							String.valueOf(truckFactorVO.getTruckfactor()), truckFactorVO.getProjectName()};
+					try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
+						writer.writeNext(record);
+					}
 				}
 			}
 		}
+	}
+
+	private double getCoverage(List<AuthorFile> authorsFiles, List<Contributor> contributors, 
+			List<model.File> files) {
+		int fileSize = files.size();
+		int numberFilesCovarage = 0;
+		forFiles:for(model.File file: files) {
+			List<AuthorFile> authorsFilesAux = authorsFiles.stream().
+					filter(authorFile -> authorFile.getFile().getPath().equals(file.getPath())).collect(Collectors.toList());
+			if (authorsFilesAux != null && authorsFilesAux.size() > 0) {
+				List<Contributor> maintainers = new ArrayList<Contributor>();
+				AuthorFile max = authorsFilesAux.stream().max(Comparator.comparing(AuthorFile::getDoe)).get();
+				for (AuthorFile authorFile : authorsFilesAux) {
+					double normalized = authorFile.getDoe()/max.getDoe();
+					if (normalized > 0.7) {
+						maintainers.add(authorFile.getAuthor());
+					}
+				}
+				if (maintainers.size() > 0) {
+					for (Contributor contributor : contributors) {
+						for (Contributor maintainer : maintainers) {
+							if (maintainer.equals(contributor)) {
+								numberFilesCovarage++;
+								continue forFiles;
+							}
+						}
+					}
+				}
+			}
+		}
+		double coverage = (double)numberFilesCovarage/(double)fileSize;
+		return coverage; 
 	}
 
 	private void setNumberAuthor(List<Contributor> contributors, 
@@ -96,15 +151,15 @@ public class TruckFactorAnalyzer {
 			List<AuthorFile> authorsFilesAux = authorsFiles.stream().
 					filter(authorFile -> authorFile.getFile().getPath().equals(file.getPath())).collect(Collectors.toList());
 			if (authorsFilesAux != null && authorsFilesAux.size() > 0) {
-				List<Contributor> mantainers = new ArrayList<Contributor>();
+				List<Contributor> maintainers = new ArrayList<Contributor>();
 				AuthorFile max = authorsFilesAux.stream().max(Comparator.comparing(AuthorFile::getDoe)).get();
 				for (AuthorFile authorFile : authorsFilesAux) {
 					double normalized = authorFile.getDoe()/max.getDoe();
 					if (normalized > 0.7) {
-						mantainers.add(authorFile.getAuthor());
+						maintainers.add(authorFile.getAuthor());
 					}
 				}
-				for (Contributor maintainer : mantainers) {
+				for (Contributor maintainer : maintainers) {
 					for (Contributor contributor: contributors) {
 						if (maintainer.equals(contributor)) {
 							contributor.setNumberFilesAuthor(contributor.getNumberFilesAuthor()+1);
@@ -124,6 +179,7 @@ public class TruckFactorAnalyzer {
 			for (Contributor contributorAux : contributors) {
 				if (contributorAux.equals(commit.getAuthor())) {
 					present = true;
+					break;
 				}
 			}
 			if (present == true) {
@@ -147,6 +203,7 @@ public class TruckFactorAnalyzer {
 			for (Contributor contributorAux : contributors) {
 				if (contributorAux.equals(commit.getAuthor())) {
 					present = true;
+					break;
 				}
 			}
 			if (present == true) {
@@ -176,6 +233,7 @@ public class TruckFactorAnalyzer {
 			for (Contributor contributorAux : contributors) {
 				if (contributorAux.equals(commit.getAuthor())) {
 					present = true;
+					break;
 				}
 			}
 			if (present == true) {
@@ -200,6 +258,7 @@ public class TruckFactorAnalyzer {
 			for (Contributor contributorAux : contributors) {
 				if (contributorAux.equals(commit.getAuthor())) {
 					present = true;
+					break;
 				}
 			}
 			if (present == true) {
