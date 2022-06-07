@@ -53,7 +53,7 @@ public class FileUtils {
 		return name;
 	}
 
-	public static List<File> filesToBeAnalyzed(Project project){
+	public List<File> filesToBeAnalyzed(Project project){
 		List<File> files = new ArrayList<File>();
 		FileDAO fileDAO = new FileDAO();
 		List<String> currentFilesPath = null;
@@ -72,7 +72,7 @@ public class FileUtils {
 		return files;
 	}
 
-	public static List<String> currentFiles(Repository repository) throws MissingObjectException, IncorrectObjectTypeException, IOException {
+	public List<String> currentFiles(Repository repository) throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		Ref head = repository.exactRef("HEAD");
 		List<String> filesPath = new ArrayList<String>();
 		RevWalk walk = new RevWalk(repository);

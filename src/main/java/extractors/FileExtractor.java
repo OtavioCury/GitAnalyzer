@@ -30,10 +30,11 @@ public class FileExtractor {
 	}
 
 	public List<File> extractFromRepository(Repository repository) {
+		FileUtils fileUtils = new FileUtils();
 		FileDAO fileDao = new FileDAO();
 		List<File> files = new ArrayList<File>();
 		try {
-			List<String> filesPath = FileUtils.currentFiles(repository);
+			List<String> filesPath = fileUtils.currentFiles(repository);
 			for (String path: filesPath) {
 				if (fileDao.existsByFilePathProject(path, project) == false) {
 					File file = new File(path, project, FileUtils.returnFileExtension(path));

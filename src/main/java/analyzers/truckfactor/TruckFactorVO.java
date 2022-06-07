@@ -2,45 +2,55 @@ package analyzers.truckfactor;
 
 public class TruckFactorVO {
 
-	private int numberOfDevs, numberOfDevsAlias, numberOfFiles, numberOfCommits, truckfactor;
+	private int numberAllDevs, numberAnalysedDevs, numberAnalysedDevsAlias, 
+	numberAllFiles, numberAnalysedFiles, numberAllCommits, numberAnalysedCommits, truckfactor;
 	private String projectName;
 
-	public TruckFactorVO(int numberOfDevs, int numberOfDevsAlias, int numberOfFiles, int numberOfCommits,
-			int truckfactor, String projectName) {
-		super();
-		this.numberOfDevs = numberOfDevs;
-		this.numberOfDevsAlias = numberOfDevsAlias;
-		this.numberOfFiles = numberOfFiles;
-		this.numberOfCommits = numberOfCommits;
-		this.truckfactor = truckfactor;
-		this.projectName = projectName;
-	}
 	public TruckFactorVO() {
 		super();
 	}
-	public int getNumberOfDevs() {
-		return numberOfDevs;
+
+	public int getNumberAllDevs() {
+		return numberAllDevs;
 	}
-	public void setNumberOfDevs(int numberOfDevs) {
-		this.numberOfDevs = numberOfDevs;
+	public void setNumberAllDevs(int numberAllDevs) {
+		this.numberAllDevs = numberAllDevs;
 	}
-	public int getNumberOfDevsAlias() {
-		return numberOfDevsAlias;
+	public int getNumberAnalysedDevs() {
+		return numberAnalysedDevs;
 	}
-	public void setNumberOfDevsAlias(int numberOfDevsAlias) {
-		this.numberOfDevsAlias = numberOfDevsAlias;
+	public void setNumberAnalysedDevs(int numberAnalysedDevs) {
+		this.numberAnalysedDevs = numberAnalysedDevs;
 	}
-	public int getNumberOfFiles() {
-		return numberOfFiles;
+	public int getNumberAnalysedDevsAlias() {
+		return numberAnalysedDevsAlias;
 	}
-	public void setNumberOfFiles(int numberOfFiles) {
-		this.numberOfFiles = numberOfFiles;
+	public void setNumberAnalysedDevsAlias(int numberAnalysedDevsAlias) {
+		this.numberAnalysedDevsAlias = numberAnalysedDevsAlias;
 	}
-	public int getNumberOfCommits() {
-		return numberOfCommits;
+	public int getNumberAllFiles() {
+		return numberAllFiles;
 	}
-	public void setNumberOfCommits(int numberOfCommits) {
-		this.numberOfCommits = numberOfCommits;
+	public void setNumberAllFiles(int numberAllFiles) {
+		this.numberAllFiles = numberAllFiles;
+	}
+	public int getNumberAnalysedFiles() {
+		return numberAnalysedFiles;
+	}
+	public void setNumberAnalysedFiles(int numberAnalysedFiles) {
+		this.numberAnalysedFiles = numberAnalysedFiles;
+	}
+	public int getNumberAllCommits() {
+		return numberAllCommits;
+	}
+	public void setNumberAllCommits(int numberAllCommits) {
+		this.numberAllCommits = numberAllCommits;
+	}
+	public int getNumberAnalysedCommits() {
+		return numberAnalysedCommits;
+	}
+	public void setNumberAnalysedCommits(int numberAnalysedCommits) {
+		this.numberAnalysedCommits = numberAnalysedCommits;
 	}
 	public int getTruckfactor() {
 		return truckfactor;
@@ -56,8 +66,11 @@ public class TruckFactorVO {
 	}
 	@Override
 	public String toString() {
-		return "TruckFactorVO [numberOfDevs=" + numberOfDevs + ", numberOfDevsAlias=" + numberOfDevsAlias
-				+ ", numberOfFiles=" + numberOfFiles + ", numberOfCommits=" + numberOfCommits + ", truckfactor="
-				+ truckfactor + ", projectName=" + projectName + "]";
+		return numberAllDevs + ";" + numberAnalysedDevs
+				+ ";" + numberAnalysedDevsAlias + ";" + numberAllFiles
+				+ ";" + numberAnalysedFiles + ";" + numberAllCommits
+				+ ";" + numberAnalysedCommits + ";" + truckfactor + ";"
+				+ projectName;
 	}
+
 }

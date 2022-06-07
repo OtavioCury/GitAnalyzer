@@ -36,14 +36,15 @@ public class RepositoryAnalyzer {
 		}
 		RepositoryAnalyzer.repository = RepositoryAnalyzer.git.getRepository();
 	}
-	
+
 	public static void closeRepository() {
 		RepositoryAnalyzer.git.close();
 	}
 
 	public static List<model.File> getAnalyzedFiles(Project project) {
+		FileUtils fileUtils = new FileUtils();
 		if(analyzedFiles == null) {
-			setAnalyzedFiles(FileUtils.filesToBeAnalyzed(project));
+			setAnalyzedFiles(fileUtils.filesToBeAnalyzed(project));
 		}
 		return analyzedFiles;
 	}

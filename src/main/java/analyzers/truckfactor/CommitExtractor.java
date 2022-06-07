@@ -37,12 +37,14 @@ import utils.Constants;
 
 public class CommitExtractor {
 
-	public List<Commit> getCommits(List<File> files, Git git, Repository repository) throws NoHeadException, 
+	public List<Commit> extractCommits(List<File> files, Git git, Repository repository) throws NoHeadException, 
 	GitAPIException, AmbiguousObjectException, IncorrectObjectTypeException, IOException{
+		List<Commit> commits = new ArrayList<Commit>();
 		HashMap<String, List<String>> arquivoRenames = new HashMap<String, List<String>>();
 		for (File file : files) {
 			arquivoRenames.put(file.getPath(), new ArrayList<String>());
 		}
+		boolean analyse;
 		Iterable<RevCommit> commitsIterable = git.log().setRevFilter(RevFilter.NO_MERGES).call();
 		List<RevCommit> commitsList = new ArrayList<RevCommit>();
 		commitsIterable.forEach(commitsList::add);
@@ -57,8 +59,6 @@ public class CommitExtractor {
 				}
 			}
 		});
-		boolean analyse;
-		List<Commit> commits = new ArrayList<Commit>();
 		for (RevCommit jgitCommit: commitsList) {
 			String nome = null, email = null;
 			if (jgitCommit.getAuthorIdent() != null) {
