@@ -20,22 +20,22 @@ public class MainExtractor {
 		Project project = projectDao.findByName(projectName);
 		RepositoryAnalyzer.initRepository(projectName);
 		System.out.println("=========== Extracting files =======");
-//		extractFiles(project);
+		//		extractFiles(project);
 		System.out.println("=========== Extracting commits =======");
-//		extractCommits(project);
+		//		extractCommits(project);
 		System.out.println("=========== Extracting contributors =======");
-//		extractContributors(project);
-//		extractSquads(project);
+		//		extractContributors(project);
+		//		extractSquads(project);
 		System.out.println("=========== Extracting files versions =======");
-//		extractFilesVersion(project);
+		//		extractFilesVersion(project);
 		System.out.println("=========== Extracting author files =======");
-//		extractAuthorFile(project);
+		//		extractAuthorFile(project);
 		System.out.println("=========== Extracting files references =======");
-//		extractFileGraph(project);
+		//		extractFileGraph(project);
 		System.out.println("=========== Extracting DOEs =======");
-//		extractDoe(project);
+		//		extractDoe(project);
 		System.out.println("=========== Extracting DOAs =======");
-//		extractDoa(project);
+		//		extractDoa(project);
 		System.out.println("================ End of Analysis ===========");
 		RepositoryAnalyzer.git.close();
 	}
@@ -88,9 +88,9 @@ public class MainExtractor {
 	}
 
 	private static void extractCommits(Project project) {
-		CommitExtractor commitAnalyzer = new CommitExtractor(project);
+		CommitExtractor commitAnalyzer = new CommitExtractor();
 		try {
-			commitAnalyzer.run();
+			commitAnalyzer.extractCommitsWithPersistence(project);
 		} catch (GitAPIException | IOException e) {
 			e.printStackTrace();
 		}

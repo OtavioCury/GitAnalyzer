@@ -26,6 +26,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import enums.OperationType;
+import extractors.CommitExtractor;
 import extractors.FileExtractor;
 import extractors.ProjectExtractor;
 import model.AuthorFile;
@@ -39,12 +40,32 @@ import utils.FileUtils;
 
 public class TruckFactorAnalyzer {
 
-	private static String filePath = "/home/otavio/projetos/truck_factor.log";
+	private static String developersProjectFilePath = "/home/otavio/projetos/truck_factor_devs.log";
 
 	private static List<String> invalidsProjects = new ArrayList<String>(Arrays.asList("/home/otavio/projetos/sass/", "/home/otavio/projetos/metrics/",
 			"/home/otavio/projetos/ionic/", "/home/otavio/projetos/linux/", "/home/otavio/projetos/dropwizard/", "/home/otavio/projetos/cucumber/"));
 
-	public static void main(String[] args) throws IOException, NoHeadException, GitAPIException {
+	public static void main(String[] args) {
+
+		TruckFactorAnalyzer truckFactorAnalyzer = new TruckFactorAnalyzer();
+		String pathToDir = args[0];
+		try {
+			truckFactorAnalyzer.executeTruckFactorAnalyzes(pathToDir);
+		} catch (NoHeadException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (GitAPIException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	protected void executeTruckFactorAnalyzes(String pathToDirectory) throws IOException, NoHeadException, GitAPIException{
+		int numberAllDevs, numberAnalysedDevs, numberAnalysedDevsAlias, 
+		numberAllFiles, numberAnalysedFiles, numberAllCommits, numberAnalysedCommits, truckfactor;
+		String projectName;
+
 
 		FileInputStream fstream = new FileInputStream(Constants.truckFactorResultFile);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
@@ -60,7 +81,7 @@ public class TruckFactorAnalyzer {
 			}
 		}
 
-		FileWriter fileWriter = new FileWriter(filePath, true);
+		FileWriter fileWriter = new FileWriter(pathToDirectory+Constants.truckFactorResultFile, true);
 		BufferedWriter bw = new BufferedWriter(fileWriter);
 		if (headerExists == false) {
 			String header = "numberAllDevs;numberAnalysedDevs;numberAnalysedDevsAlias;numberAllFiles;numberAnalysedFiles;numberAllCommits;numberAnalysedCommits;truckfactor";
@@ -73,16 +94,13 @@ public class TruckFactorAnalyzer {
 		DoeUtils doeUtils = new DoeUtils();
 		TruckFactorAnalyzer truckFactorAnalyzer = new TruckFactorAnalyzer();
 		CommitExtractor commitExtractor = new CommitExtractor();
-		String pathToDir = args[0];
-		File dir = new File(pathToDir);
+		File dir = new File(pathToDirectory);
 		for (File fileDir: dir.listFiles()) {
 			if (fileDir.isDirectory()) {
 				String projectPath = fileDir.getAbsolutePath()+"/";
 				if (invalidsProjects.contains(projectPath) == false) {
-					TruckFactorVO truckFactorVO = new TruckFactorVO();
 					ProjectExtractor projectExtractor = new ProjectExtractor();
-					String projectName = projectExtractor.extractProjectName(projectPath);
-					truckFactorVO.setProjectName(projectName);
+					projectName = projectExtractor.extractProjectName(projectPath);
 
 					boolean present = false;
 					String strLine;
@@ -105,20 +123,20 @@ public class TruckFactorAnalyzer {
 						FileExtractor fileExtractor = new FileExtractor(project);
 						System.out.println("EXTRACTING DATA FROM "+projectPath);
 						List<String> allFiles = fileUtils.currentFiles(repository);
-						truckFactorVO.setNumberAllFiles(allFiles.size());
+						numberAllFiles = allFiles.size();
 						List<model.File> files = fileExtractor.extractFromFileList(projectPath, Constants.linguistFileName, 
 								Constants.clocFileName, repository);
-						truckFactorVO.setNumberAnalysedFiles(files.size());
+						numberAnalysedFiles = files.size();
 						List<RevCommit> allCommits = truckFactorAnalyzer.extractAllCommits(git);
-						truckFactorVO.setNumberAllCommits(allCommits.size());
+						numberAllCommits = allCommits.size();
 						List<Contributor> allContributors = truckFactorAnalyzer.extractAuthor(allCommits);
-						truckFactorVO.setNumberAllDevs(allContributors.size());
-						List<Commit> commits = commitExtractor.extractCommits(files, git, repository);
-						truckFactorVO.setNumberAnalysedCommits(commits.size());
+						numberAllDevs = allContributors.size();
+						List<Commit> commits = commitExtractor.extractCommitsWithoutPersistence(files, git, repository);
+						numberAnalysedCommits = commits.size();
 						List<Contributor> contributors = truckFactorAnalyzer.extractContributorFromCommits(commits);
-						truckFactorVO.setNumberAnalysedDevs(contributors.size());
+						numberAnalysedDevs = contributors.size();
 						contributors = truckFactorAnalyzer.setAlias(contributors);
-						truckFactorVO.setNumberAnalysedDevsAlias(contributors.size());
+						numberAnalysedDevsAlias = contributors.size();
 						List<AuthorFile> authorFiles = new ArrayList<AuthorFile>();
 						for(Contributor contributor: contributors) {
 							for (model.File file : files) {
@@ -151,8 +169,21 @@ public class TruckFactorAnalyzer {
 							contributors.remove(0);
 							tf = tf+1;
 						}
-						truckFactorVO.setTruckfactor(tf);
-						fileWriter = new FileWriter(filePath, true);
+
+						FileWriter fileWriterDevs = new FileWriter(developersProjectFilePath, true);
+						BufferedWriter bwDevs = new BufferedWriter(fileWriterDevs);
+						for (Contributor contributor : topContributors) {
+							TruckFactorDevelopersVO developersVO = new TruckFactorDevelopersVO(contributor.getName(), contributor.getEmail(), projectName);
+							bwDevs.write(developersVO.toString());
+							bwDevs.newLine();
+						}
+						bwDevs.close();
+
+						truckfactor = tf;
+						TruckFactorVO truckFactorVO = new TruckFactorVO(numberAllDevs, numberAnalysedDevs, 
+								numberAnalysedDevsAlias, numberAllFiles, numberAnalysedFiles, 
+								numberAllCommits, numberAnalysedCommits, truckfactor, projectName); 
+						fileWriter = new FileWriter(pathToDirectory+Constants.truckFactorResultFile, true);
 						bw = new BufferedWriter(fileWriter);
 						bw.write(truckFactorVO.toString());
 						bw.newLine();
@@ -164,7 +195,7 @@ public class TruckFactorAnalyzer {
 		br.close();
 	}
 
-	private List<Contributor> extractAuthor(List<RevCommit> commitsList) {
+	protected List<Contributor> extractAuthor(List<RevCommit> commitsList) {
 		List<Contributor> contributors = new ArrayList<Contributor>();
 		for (RevCommit jgitCommit: commitsList) {
 			String nome = null, email = null;
@@ -197,7 +228,7 @@ public class TruckFactorAnalyzer {
 		return contributors;
 	}
 
-	private List<RevCommit> extractAllCommits(Git git){
+	protected List<RevCommit> extractAllCommits(Git git){
 		try {
 			Iterable<RevCommit> commitsIterable = git.log().call();
 			List<RevCommit> commitsList = new ArrayList<RevCommit>();
@@ -209,7 +240,7 @@ public class TruckFactorAnalyzer {
 		return null;
 	}
 
-	private double getCoverage(List<AuthorFile> authorsFiles, List<Contributor> contributors, 
+	protected double getCoverage(List<AuthorFile> authorsFiles, List<Contributor> contributors, 
 			List<model.File> files) {
 		int fileSize = files.size();
 		int numberFilesCovarage = 0;
@@ -241,7 +272,7 @@ public class TruckFactorAnalyzer {
 		return coverage; 
 	}
 
-	private void setNumberAuthor(List<Contributor> contributors, 
+	protected void setNumberAuthor(List<Contributor> contributors, 
 			List<AuthorFile> authorsFiles, List<model.File> files) {
 		for (model.File file: files) {
 			List<AuthorFile> authorsFilesAux = authorsFiles.stream().
@@ -266,7 +297,7 @@ public class TruckFactorAnalyzer {
 		}
 	}
 
-	private boolean existsContributorFile(Contributor contributor, model.File file, List<Commit> commits) {
+	protected boolean existsContributorFile(Contributor contributor, model.File file, List<Commit> commits) {
 		for (Commit commit : commits) {
 			boolean present = false;
 			List<Contributor> contributors = new ArrayList<Contributor>();
@@ -289,7 +320,7 @@ public class TruckFactorAnalyzer {
 		return false;
 	}
 
-	private int numDaysContributorFile(Contributor contributor, model.File file, List<Commit> commits) {
+	protected int numDaysContributorFile(Contributor contributor, model.File file, List<Commit> commits) {
 		Date currentDate = commits.get(0).getDate();
 		List<Contributor> contributors = new ArrayList<Contributor>();
 		contributors.add(contributor);
@@ -320,7 +351,7 @@ public class TruckFactorAnalyzer {
 		return 0;
 	}
 
-	private int firstAuthorContributorFile(Contributor contributor, model.File file, List<Commit> commits) {
+	protected int firstAuthorContributorFile(Contributor contributor, model.File file, List<Commit> commits) {
 		List<Contributor> contributors = new ArrayList<Contributor>();
 		contributors.add(contributor);
 		contributors.addAll(contributor.getAlias());
@@ -343,7 +374,7 @@ public class TruckFactorAnalyzer {
 		return 0;
 	}
 
-	private int linesAddedContributorFile(Contributor contributor, 
+	protected int linesAddedContributorFile(Contributor contributor, 
 			model.File file, List<Commit> commits) {
 		int adds = 0;
 		List<Contributor> contributors = new ArrayList<Contributor>();
@@ -368,7 +399,7 @@ public class TruckFactorAnalyzer {
 		return adds;
 	}
 
-	private List<Contributor> extractContributorFromCommits(List<Commit> commits){
+	protected List<Contributor> extractContributorFromCommits(List<Commit> commits){
 		List<Contributor> contributors = new ArrayList<Contributor>();
 		for (Commit commit : commits) {
 			Contributor contributor = commit.getAuthor();
@@ -385,7 +416,7 @@ public class TruckFactorAnalyzer {
 		return contributors;
 	}
 
-	public List<Contributor> setAlias(List<Contributor> contributors){
+	protected List<Contributor> setAlias(List<Contributor> contributors){
 		List<Contributor> contributorsAliases = new ArrayList<Contributor>();
 		for (Contributor contributor : contributors) {
 			boolean present = false;
