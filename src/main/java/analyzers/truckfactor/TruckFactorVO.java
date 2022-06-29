@@ -9,11 +9,11 @@ public class TruckFactorVO {
 
 	private int numberAllDevs, numberAnalysedDevs, numberAnalysedDevsAlias, 
 	numberAllFiles, numberAnalysedFiles, numberAllCommits, numberAnalysedCommits, truckfactor;
-	private String projectName;
+	private String projectName, dateVersion;
 
 	public TruckFactorVO(int numberAllDevs, int numberAnalysedDevs, int numberAnalysedDevsAlias, int numberAllFiles,
 			int numberAnalysedFiles, int numberAllCommits, int numberAnalysedCommits, int truckfactor,
-			String projectName) {
+			String projectName, String dateVersion) {
 		super();
 		this.numberAllDevs = numberAllDevs;
 		this.numberAnalysedDevs = numberAnalysedDevs;
@@ -24,6 +24,7 @@ public class TruckFactorVO {
 		this.numberAnalysedCommits = numberAnalysedCommits;
 		this.truckfactor = truckfactor;
 		this.projectName = projectName;
+		this.dateVersion = dateVersion;
 	}
 
 	@Override
@@ -32,7 +33,7 @@ public class TruckFactorVO {
 				+ ";" + numberAnalysedDevsAlias + ";" + numberAllFiles
 				+ ";" + numberAnalysedFiles + ";" + numberAllCommits
 				+ ";" + numberAnalysedCommits + ";" + truckfactor + ";"
-				+ projectName;
+				+ projectName + ";" + dateVersion;
 	}
 
 }

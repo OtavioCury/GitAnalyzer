@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import enums.KnowledgeMetric;
 import enums.OperationType;
 import extractors.CommitExtractor;
 import extractors.FileExtractor;
@@ -35,39 +37,224 @@ import model.CommitFile;
 import model.Contributor;
 import model.Project;
 import utils.Constants;
+import utils.DoaUtils;
 import utils.DoeUtils;
 import utils.FileUtils;
 
 public class TruckFactorAnalyzer {
 
-	private static String developersProjectFilePath = "/home/otavio/projetos/truck_factor_devs.log";
+	private FileUtils fileUtils = new FileUtils();
+	private DoeUtils doeUtils = new DoeUtils();
+	private DoaUtils doaUtils = new DoaUtils();
 
 	private static List<String> invalidsProjects = new ArrayList<String>(Arrays.asList("/home/otavio/projetos/sass/", "/home/otavio/projetos/metrics/",
 			"/home/otavio/projetos/ionic/", "/home/otavio/projetos/linux/", "/home/otavio/projetos/dropwizard/", "/home/otavio/projetos/cucumber/"));
 
+	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
+
 	public static void main(String[] args) {
 
 		TruckFactorAnalyzer truckFactorAnalyzer = new TruckFactorAnalyzer();
-		String pathToDir = args[0];
-		try {
-			truckFactorAnalyzer.executeTruckFactorAnalyzes(pathToDir);
-		} catch (NoHeadException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (GitAPIException e) {
-			e.printStackTrace();
-		}
-
+		//String pathToDir = args[0];
+		//		try {
+		//			truckFactorAnalyzer.directoriesTruckFactorAnalyzes(pathToDir);
+		//		} catch (NoHeadException e) {
+		//			e.printStackTrace();
+		//		} catch (IOException e) {
+		//			e.printStackTrace();
+		//		} catch (GitAPIException e) {
+		//			e.printStackTrace();
+		//		}
+		truckFactorAnalyzer.analysesIhealth();
 	}
 
-	protected void executeTruckFactorAnalyzes(String pathToDirectory) throws IOException, NoHeadException, GitAPIException{
+	private void analysesIhealth() {
+		TruckFactorAnalyzer truckFactorAnalyzer = new TruckFactorAnalyzer();
+		try {
+			truckFactorAnalyzer.projectTruckFactorAnalyzes("/home/otavio/Desktop/GitAnalyzer/projetos/ihealth/", "/home/otavio/Desktop/GitAnalyzer/projetos/", KnowledgeMetric.DOE);
+		} catch (IOException | GitAPIException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void projectTruckFactorAnalyzes(String projectPath, String resultFilesDirectory, KnowledgeMetric knowledgeMetric) throws IOException, NoHeadException, GitAPIException {
+
+		FileInputStream fstream = new FileInputStream(resultFilesDirectory+Constants.truckFactorResultFile);
+		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+
+		CommitExtractor commitExtractor = new CommitExtractor();
+
 		int numberAllDevs, numberAnalysedDevs, numberAnalysedDevsAlias, 
 		numberAllFiles, numberAnalysedFiles, numberAllCommits, numberAnalysedCommits, truckfactor;
 		String projectName;
 
+		if (invalidsProjects.contains(projectPath) == false) {
+			ProjectExtractor projectExtractor = new ProjectExtractor();
+			projectName = projectExtractor.extractProjectName(projectPath);
 
-		FileInputStream fstream = new FileInputStream(Constants.truckFactorResultFile);
+			boolean present = false;
+			String strLine;
+
+			while ((strLine = br.readLine()) != null) {
+				String[] line = strLine.split(";");
+				String name = line[8];
+				if (name.equals(projectName)) {
+					present = true;
+					break;
+				}
+			}
+
+			if (present == false) {
+				Project project = new Project(projectName);
+				Git git = null;
+				Repository repository;
+				try {
+					git = Git.open(new File(projectPath));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				repository = git.getRepository();
+
+				FileExtractor fileExtractor = new FileExtractor(project);
+				System.out.println("EXTRACTING DATA FROM "+projectPath);
+				List<String> allFiles = fileUtils.currentFiles(repository);
+				numberAllFiles = allFiles.size();
+				List<model.File> files = fileExtractor.extractFromFileList(projectPath, Constants.linguistFileName, 
+						Constants.clocFileName, repository);
+				numberAnalysedFiles = files.size();
+				List<RevCommit> allCommits = extractAllCommits(git);
+				numberAllCommits = allCommits.size();
+				List<Contributor> allContributors = extractAuthor(allCommits);
+				numberAllDevs = allContributors.size();
+				List<Commit> commits = commitExtractor.extractCommitsWithoutPersistence(files, git, repository);
+				numberAnalysedCommits = commits.size();
+				List<Contributor> contributors = extractContributorFromCommits(commits);
+				numberAnalysedDevs = contributors.size();
+				contributors = setAlias(contributors);
+				numberAnalysedDevsAlias = contributors.size();
+				List<AuthorFile> authorFiles = new ArrayList<AuthorFile>();
+				for(Contributor contributor: contributors) {
+					for (model.File file : files) {
+						boolean existsContributorFile = existsContributorFile(contributor, file, commits);
+						if (existsContributorFile) {
+							int firstAuthor = firstAuthorContributorFile(contributor, file, commits);
+							if (knowledgeMetric.equals(KnowledgeMetric.DOE)) {
+								int adds = linesAddedContributorFile(contributor, file, commits);
+								int numDays = numDaysContributorFile(contributor, file, commits);
+								int fileSize = file.getFileSize();
+								double doe = doeUtils.getDOE(adds, firstAuthor, numDays, fileSize);
+								authorFiles.add(new AuthorFile(contributor, file, doe));
+							}else {
+								int dl = numberOfCommitsContributorFile(contributor, file, commits);
+								int ac = numberOfCommitsOtherDevsContributorFile(contributor, file, commits);
+								double doa = doaUtils.getDOA(firstAuthor, dl, ac);
+								authorFiles.add(new AuthorFile(contributor, doa, file));
+							}
+						}
+					}
+				}
+				setNumberAuthor(contributors, authorFiles, files, knowledgeMetric);
+				Collections.sort(contributors, new Comparator<Contributor>() {
+					@Override
+					public int compare(Contributor c1, Contributor c2) {
+						return Integer.compare(c2.getNumberFilesAuthor(), c1.getNumberFilesAuthor());
+					}
+				});
+				contributors.removeIf(contributor -> contributor.getNumberFilesAuthor() == 0);
+				List<Contributor> topContributors = new ArrayList<Contributor>();
+				int tf = 0;
+				while(contributors.isEmpty() == false) {
+					double covarage = getCoverage(authorFiles, contributors, files, knowledgeMetric);
+					if(covarage < 0.5) 
+						break;
+					topContributors.add(contributors.get(0));
+					contributors.remove(0);
+					tf = tf+1;
+				}
+
+				String dateLastCommit = simpleDateFormat.format(commits.get(0).getDate());
+
+				FileWriter fileWriterDevs = new FileWriter(resultFilesDirectory+Constants.developersProjectFileName, true);
+				BufferedWriter bwDevs = new BufferedWriter(fileWriterDevs);
+				for (Contributor contributor : topContributors) {
+					TruckFactorDevelopersVO developersVO = new TruckFactorDevelopersVO(contributor.getName(), contributor.getEmail(), projectName, dateLastCommit);
+					bwDevs.write(developersVO.toString());
+					bwDevs.newLine();
+				}
+				bwDevs.close();
+
+				truckfactor = tf;
+				TruckFactorVO truckFactorVO = new TruckFactorVO(numberAllDevs, numberAnalysedDevs, 
+						numberAnalysedDevsAlias, numberAllFiles, numberAnalysedFiles, 
+						numberAllCommits, numberAnalysedCommits, truckfactor, projectName, 
+						dateLastCommit); 
+
+				FileWriter fileWriter = new FileWriter(resultFilesDirectory+Constants.truckFactorResultFile, true);
+				BufferedWriter bw = new BufferedWriter(fileWriter);
+				bw.write(truckFactorVO.toString());
+				bw.newLine();
+				bw.close();
+			}
+		}
+		br.close();
+	}
+
+	protected int numberOfCommitsOtherDevsContributorFile(Contributor contributor, 
+			model.File file, List<Commit> commits) {
+		int numerCommits = 0;
+		List<Contributor> contributors = new ArrayList<Contributor>();
+		contributors.add(contributor);
+		contributors.addAll(contributor.getAlias());
+		for (Commit commit : commits) {
+			boolean present = false;
+			for (Contributor contributorAux : contributors) {
+				if (contributorAux.equals(commit.getAuthor())) {
+					present = true;
+					break;
+				}
+			}
+			if (present == false) {
+				for (CommitFile commitFile: commit.getCommitFiles()) {
+					if (commitFile.getFile().getPath().equals(file.getPath())) {
+						numerCommits++;
+						break;
+					}
+				}
+			}
+		}
+		return numerCommits;
+	}
+
+	protected int numberOfCommitsContributorFile(Contributor contributor, 
+			model.File file, List<Commit> commits) {
+		int numerCommits = 0;
+		List<Contributor> contributors = new ArrayList<Contributor>();
+		contributors.add(contributor);
+		contributors.addAll(contributor.getAlias());
+		for (Commit commit : commits) {
+			boolean present = false;
+			for (Contributor contributorAux : contributors) {
+				if (contributorAux.equals(commit.getAuthor())) {
+					present = true;
+					break;
+				}
+			}
+			if (present == true) {
+				for (CommitFile commitFile: commit.getCommitFiles()) {
+					if (commitFile.getFile().getPath().equals(file.getPath())) {
+						numerCommits++;
+						break;
+					}
+				}
+			}
+		}
+		return numerCommits;
+	}
+
+
+	protected void directoriesTruckFactorAnalyzes(String pathToDirectories) throws IOException, NoHeadException, GitAPIException{
+
+		FileInputStream fstream = new FileInputStream(pathToDirectories+Constants.truckFactorResultFile);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
 		boolean headerExists = false;
@@ -81,118 +268,24 @@ public class TruckFactorAnalyzer {
 			}
 		}
 
-		FileWriter fileWriter = new FileWriter(pathToDirectory+Constants.truckFactorResultFile, true);
-		BufferedWriter bw = new BufferedWriter(fileWriter);
 		if (headerExists == false) {
-			String header = "numberAllDevs;numberAnalysedDevs;numberAnalysedDevsAlias;numberAllFiles;numberAnalysedFiles;numberAllCommits;numberAnalysedCommits;truckfactor";
+			FileWriter fileWriter = new FileWriter(pathToDirectories+Constants.truckFactorResultFile, true);
+			BufferedWriter bw = new BufferedWriter(fileWriter);
+			String header = "numberAllDevs;numberAnalysedDevs;numberAnalysedDevsAlias;numberAllFiles;numberAnalysedFiles;numberAllCommits;numberAnalysedCommits;truckfactor;date";
 			bw.write(header);
 			bw.newLine();
 			bw.close();
 		}
 
-		FileUtils fileUtils = new FileUtils();
-		DoeUtils doeUtils = new DoeUtils();
-		TruckFactorAnalyzer truckFactorAnalyzer = new TruckFactorAnalyzer();
-		CommitExtractor commitExtractor = new CommitExtractor();
-		File dir = new File(pathToDirectory);
+		br.close();
+
+		File dir = new File(pathToDirectories);
 		for (File fileDir: dir.listFiles()) {
 			if (fileDir.isDirectory()) {
 				String projectPath = fileDir.getAbsolutePath()+"/";
-				if (invalidsProjects.contains(projectPath) == false) {
-					ProjectExtractor projectExtractor = new ProjectExtractor();
-					projectName = projectExtractor.extractProjectName(projectPath);
-
-					boolean present = false;
-					String strLine;
-					while ((strLine = br.readLine()) != null) {
-						String[] line = strLine.split(";");
-						String name = line[line.length - 1];
-						if (name.equals(projectName)) {
-							present = true;
-							break;
-						}
-					}
-
-					if (present == false) {
-						Project project = new Project(projectName);
-						Git git;
-						Repository repository;
-						git = Git.open(new File(projectPath));
-						repository = git.getRepository();
-
-						FileExtractor fileExtractor = new FileExtractor(project);
-						System.out.println("EXTRACTING DATA FROM "+projectPath);
-						List<String> allFiles = fileUtils.currentFiles(repository);
-						numberAllFiles = allFiles.size();
-						List<model.File> files = fileExtractor.extractFromFileList(projectPath, Constants.linguistFileName, 
-								Constants.clocFileName, repository);
-						numberAnalysedFiles = files.size();
-						List<RevCommit> allCommits = truckFactorAnalyzer.extractAllCommits(git);
-						numberAllCommits = allCommits.size();
-						List<Contributor> allContributors = truckFactorAnalyzer.extractAuthor(allCommits);
-						numberAllDevs = allContributors.size();
-						List<Commit> commits = commitExtractor.extractCommitsWithoutPersistence(files, git, repository);
-						numberAnalysedCommits = commits.size();
-						List<Contributor> contributors = truckFactorAnalyzer.extractContributorFromCommits(commits);
-						numberAnalysedDevs = contributors.size();
-						contributors = truckFactorAnalyzer.setAlias(contributors);
-						numberAnalysedDevsAlias = contributors.size();
-						List<AuthorFile> authorFiles = new ArrayList<AuthorFile>();
-						for(Contributor contributor: contributors) {
-							for (model.File file : files) {
-								boolean existsContributorFile = truckFactorAnalyzer.existsContributorFile(contributor, file, commits);
-								if (existsContributorFile) {
-									int adds = truckFactorAnalyzer.linesAddedContributorFile(contributor, file, commits);
-									int firstAuthor = truckFactorAnalyzer.firstAuthorContributorFile(contributor, file, commits);
-									int numDays = truckFactorAnalyzer.numDaysContributorFile(contributor, file, commits);
-									int fileSize = file.getFileSize();
-									double doe = doeUtils.getDOE(adds, firstAuthor, numDays, fileSize);
-									authorFiles.add(new AuthorFile(contributor, file, doe));
-								}
-							}
-						}
-						truckFactorAnalyzer.setNumberAuthor(contributors, authorFiles, files);
-						Collections.sort(contributors, new Comparator<Contributor>() {
-							@Override
-							public int compare(Contributor c1, Contributor c2) {
-								return Integer.compare(c2.getNumberFilesAuthor(), c1.getNumberFilesAuthor());
-							}
-						});
-						contributors.removeIf(contributor -> contributor.getNumberFilesAuthor() == 0);
-						List<Contributor> topContributors = new ArrayList<Contributor>();
-						int tf = 0;
-						while(contributors.isEmpty() == false) {
-							double covarage = truckFactorAnalyzer.getCoverage(authorFiles, contributors, files);
-							if(covarage < 0.5) 
-								break;
-							topContributors.add(contributors.get(0));
-							contributors.remove(0);
-							tf = tf+1;
-						}
-
-						FileWriter fileWriterDevs = new FileWriter(developersProjectFilePath, true);
-						BufferedWriter bwDevs = new BufferedWriter(fileWriterDevs);
-						for (Contributor contributor : topContributors) {
-							TruckFactorDevelopersVO developersVO = new TruckFactorDevelopersVO(contributor.getName(), contributor.getEmail(), projectName);
-							bwDevs.write(developersVO.toString());
-							bwDevs.newLine();
-						}
-						bwDevs.close();
-
-						truckfactor = tf;
-						TruckFactorVO truckFactorVO = new TruckFactorVO(numberAllDevs, numberAnalysedDevs, 
-								numberAnalysedDevsAlias, numberAllFiles, numberAnalysedFiles, 
-								numberAllCommits, numberAnalysedCommits, truckfactor, projectName); 
-						fileWriter = new FileWriter(pathToDirectory+Constants.truckFactorResultFile, true);
-						bw = new BufferedWriter(fileWriter);
-						bw.write(truckFactorVO.toString());
-						bw.newLine();
-						bw.close();
-					}
-				}
+				projectTruckFactorAnalyzes(projectPath, pathToDirectories, KnowledgeMetric.DOE);
 			}
 		}
-		br.close();
 	}
 
 	protected List<Contributor> extractAuthor(List<RevCommit> commitsList) {
@@ -241,7 +334,7 @@ public class TruckFactorAnalyzer {
 	}
 
 	protected double getCoverage(List<AuthorFile> authorsFiles, List<Contributor> contributors, 
-			List<model.File> files) {
+			List<model.File> files, KnowledgeMetric knowledgeMetric) {
 		int fileSize = files.size();
 		int numberFilesCovarage = 0;
 		forFiles:for(model.File file: files) {
@@ -249,11 +342,21 @@ public class TruckFactorAnalyzer {
 					filter(authorFile -> authorFile.getFile().getPath().equals(file.getPath())).collect(Collectors.toList());
 			if (authorsFilesAux != null && authorsFilesAux.size() > 0) {
 				List<Contributor> maintainers = new ArrayList<Contributor>();
-				AuthorFile max = authorsFilesAux.stream().max(Comparator.comparing(AuthorFile::getDoe)).get();
+				AuthorFile max = authorsFilesAux.stream().max(
+						Comparator.comparing(knowledgeMetric.equals(KnowledgeMetric.DOE)?AuthorFile::getDoe:AuthorFile::getDoe)).get();
 				for (AuthorFile authorFile : authorsFilesAux) {
-					double normalized = authorFile.getDoe()/max.getDoe();
-					if (normalized > 0.7) {
-						maintainers.add(authorFile.getAuthor());
+					double normalized = 0;
+					if (knowledgeMetric.equals(KnowledgeMetric.DOE)) {
+						normalized = authorFile.getDoe()/max.getDoe();
+						if (normalized > Constants.normalizedThresholdMantainerDOE) {
+							maintainers.add(authorFile.getAuthor());
+						}
+					}else if(knowledgeMetric.equals(KnowledgeMetric.DOA)){
+						normalized = authorFile.getDoa()/max.getDoa();
+						if (normalized > Constants.normalizedThresholdMantainerDOA && 
+								authorFile.getDoa() > Constants.thresholdMantainerDOA) {
+							maintainers.add(authorFile.getAuthor());
+						}
 					}
 				}
 				if (maintainers.size() > 0) {
@@ -273,17 +376,27 @@ public class TruckFactorAnalyzer {
 	}
 
 	protected void setNumberAuthor(List<Contributor> contributors, 
-			List<AuthorFile> authorsFiles, List<model.File> files) {
+			List<AuthorFile> authorsFiles, List<model.File> files, KnowledgeMetric knowledgeMetric) {
 		for (model.File file: files) {
 			List<AuthorFile> authorsFilesAux = authorsFiles.stream().
 					filter(authorFile -> authorFile.getFile().getPath().equals(file.getPath())).collect(Collectors.toList());
 			if (authorsFilesAux != null && authorsFilesAux.size() > 0) {
 				List<Contributor> maintainers = new ArrayList<Contributor>();
-				AuthorFile max = authorsFilesAux.stream().max(Comparator.comparing(AuthorFile::getDoe)).get();
+				AuthorFile max = authorsFilesAux.stream().max(
+						Comparator.comparing(knowledgeMetric.equals(KnowledgeMetric.DOE)?AuthorFile::getDoe:AuthorFile::getDoe)).get();
 				for (AuthorFile authorFile : authorsFilesAux) {
-					double normalized = authorFile.getDoe()/max.getDoe();
-					if (normalized > 0.7) {
-						maintainers.add(authorFile.getAuthor());
+					double normalized = 0;
+					if (knowledgeMetric.equals(KnowledgeMetric.DOE)) {
+						normalized = authorFile.getDoe()/max.getDoe();
+						if (normalized > Constants.normalizedThresholdMantainerDOE) {
+							maintainers.add(authorFile.getAuthor());
+						}
+					}else if(knowledgeMetric.equals(KnowledgeMetric.DOA)){
+						normalized = authorFile.getDoa()/max.getDoa();
+						if (normalized > Constants.normalizedThresholdMantainerDOA && 
+								authorFile.getDoa() > Constants.thresholdMantainerDOA) {
+							maintainers.add(authorFile.getAuthor());
+						}
 					}
 				}
 				for (Contributor maintainer : maintainers) {
@@ -392,6 +505,7 @@ public class TruckFactorAnalyzer {
 				for (CommitFile commitFile: commit.getCommitFiles()) {
 					if (commitFile.getFile().getPath().equals(file.getPath())) {
 						adds = commitFile.getAdds() + adds;
+						break;
 					}
 				}
 			}

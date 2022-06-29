@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AuthorFile {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -25,7 +25,9 @@ public class AuthorFile {
 	private boolean firstAuthor;
 	@Transient
 	private double doe;	
-	
+	@Transient
+	private double doa;	
+
 	public AuthorFile(Contributor author, File file, boolean firstAuthor) {
 		super();
 		this.author = author;
@@ -41,6 +43,13 @@ public class AuthorFile {
 		this.author = author;
 		this.file = file;
 		this.doe = doe;
+	}
+
+	public AuthorFile(Contributor author, double doa, File file) {
+		super();
+		this.author = author;
+		this.file = file;
+		this.doa = doa;
 	}
 
 }

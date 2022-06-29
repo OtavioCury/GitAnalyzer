@@ -64,9 +64,11 @@ public class Constants {
 	public static final String TYPE = new String("type");
 
 	public static final String linguistFileName = new String("linguistfiles.log");
-	public static final String truckFactorHistoryFile = new String("truckFactorHistoryFile.log");
 	public static final String clocFileName = new String("cloc_info.log");
+
 	public static final String truckFactorResultFile = new String("truck_factor.log");
+	public static final String truckFactorHistoryFile = new String("truckFactorHistoryFile.log");
+	public static final String developersProjectFileName = new String("truck_factor_devs.log");
 
 	public static final double normalizedThresholdMantainerDOA = 0.75;
 	public static final double normalizedThresholdMantainerDOE = 0.7;

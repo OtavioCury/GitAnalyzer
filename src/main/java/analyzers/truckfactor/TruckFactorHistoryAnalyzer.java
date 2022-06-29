@@ -51,7 +51,7 @@ public class TruckFactorHistoryAnalyzer extends TruckFactorAnalyzer{
 				if (exitVal == 0) {
 					System.out.println(output);
 				}
-				analyzer.executeTruckFactorAnalyzes(pathToDir);
+				//analyzer.executeTruckFactorAnalyzes(pathToDir);
 				System.out.println();
 			}
 			git.checkout().setName("master").call();

@@ -60,12 +60,14 @@ public class CommitExtractor {
 	 */
 	public List<Commit> extractCommitsWithoutPersistence(List<File> files, Git git, Repository repository) throws NoHeadException, 
 	GitAPIException, AmbiguousObjectException, IncorrectObjectTypeException, IOException{
-		List<Commit> commits = new ArrayList<Commit>();
 		HashMap<String, List<String>> arquivoRenames = new HashMap<String, List<String>>();
 		for (File file : files) {
 			arquivoRenames.put(file.getPath(), new ArrayList<String>());
 		}
+		
 		boolean analyse;
+		List<Commit> commits = new ArrayList<Commit>();
+		
 		Iterable<RevCommit> commitsIterable = git.log().setRevFilter(RevFilter.NO_MERGES).call();
 		List<RevCommit> commitsList = new ArrayList<RevCommit>();
 		commitsIterable.forEach(commitsList::add);
